@@ -14,6 +14,12 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Коды исправляющие ошибки");
     resize(1200, 800);
 
+    // ВАЖНО: Инициализация панелей!
+    lab1Panel = nullptr;
+    lab2Panel = nullptr;
+    lab3Panel = nullptr;
+    lab4Panel = nullptr;
+
     // Основной горизонтальный layout
     mainLayout = new QHBoxLayout(this);
 
@@ -44,71 +50,25 @@ QGroupBox* MainWindow::createLeftPanel()
 
     // Первый групбокс для первой кнопки
     QGroupBox *firstGroupBox = new QGroupBox("Параметры кода");
-    firstGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
+    firstGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
 
     QVBoxLayout *firstLayout = new QVBoxLayout(firstGroupBox);
     btnLab1 = new QPushButton("Задать параметры кода");
+    btnLab1->setStyleSheet(ThemeStyles::lightButtonStyle());
     firstLayout->addWidget(btnLab1);
-    // firstLayout->addStretch();
 
-    leftGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
-
+    leftGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
     // Второй групбокс для остальных трех кнопок
     QGroupBox *secondGroupBox = new QGroupBox("Моделирование");
-    secondGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
 
+    secondGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
     QVBoxLayout *secondLayout = new QVBoxLayout(secondGroupBox);
     btnLab2 = new QPushButton("Модель кодека с\n неискажающим каналом");
+    btnLab2->setStyleSheet(ThemeStyles::lightButtonStyle());
     btnLab3 = new QPushButton("Модель канала ДСК");
+    btnLab3->setStyleSheet(ThemeStyles::lightButtonStyle());
     btnLab4 = new QPushButton("Модель кодека с\n искажающим ДСК");
+    btnLab4->setStyleSheet(ThemeStyles::lightButtonStyle());
 
     secondLayout->addWidget(btnLab2);
     secondLayout->addWidget(btnLab3);
@@ -119,32 +79,14 @@ QGroupBox* MainWindow::createLeftPanel()
     QGroupBox *thirdGroupBox = new QGroupBox("Инструменты");
 
     saveLog = new QPushButton("Сохранить историю окна сообщений");
+    saveLog->setStyleSheet(ThemeStyles::lightButtonStyle());
     toggleTheme = new QPushButton("Сменить тему");
+    toggleTheme->setStyleSheet(ThemeStyles::lightButtonStyle());
 
-    thirdGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
-
+    thirdGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
     QVBoxLayout *thirdLayout = new QVBoxLayout(thirdGroupBox);
     thirdLayout->addWidget(saveLog);
     thirdLayout->addWidget(toggleTheme);
-    // secondLayout->addStretch();
-
-
 
     // Добавляем оба групбокса в основной layout
     mainLeftLayout->addWidget(firstGroupBox);
@@ -158,76 +100,40 @@ QGroupBox* MainWindow::createLeftPanel()
 QGroupBox* MainWindow::createTopPanel()
 {
     topGroupBox = new QGroupBox("⚙ Рабочая область");
-    topGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
-
+    topGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
     topAreaLayout = new QVBoxLayout(topGroupBox);
-    // labelCodeLength = new QLabel("💡 Длина кодового слова (n): ");
-    // labelInfoLength = new QLabel("💡 Длина кодового слова (n): ");
-    // labelСorrectingAbility = new QLabel("💡 Длина кодового слова (n): ");
-    // labelWordsfoLength = new QLabel("💡 Длина кодового слова (n): ");
-    // topAreaLayout->addWidget(labelCodeLength);
-    // topAreaLayout->addWidget(labelInfoLength);
-    // topAreaLayout->addWidget(labelСorrectingAbility);
-    // topAreaLayout->addWidget(labelWordsfoLength);
 
-
+    runOctaveButton = new QPushButton("Запустить моделирование");
+    runOctaveButton->setMaximumWidth(240);
+    runOctaveButton->setStyleSheet(ThemeStyles::OctaveButtonStyle());
+    runOctaveButton->hide();
+    topAreaLayout->addWidget(runOctaveButton);       // потом кнопка в самом конце
 
     return topGroupBox;
 }
+
+void MainWindow::hideAllPanels()
+{
+    if (lab1Panel) lab1Panel->hide();
+    if (lab2Panel) lab2Panel->hide();
+    if (lab3Panel) lab3Panel->hide();
+    if (lab4Panel) lab4Panel->hide();
+}
+
 
 QGroupBox* MainWindow::createLogPanel()
 {
     logGroupBox = new QGroupBox("📝 Окно сообщений");
     QVBoxLayout *layout = new QVBoxLayout(logGroupBox);
 
-    logGroupBox->setStyleSheet(R"(
-        QGroupBox {
-            font-weight: bold;
-            font-size: 14px;
-            border: 2px solid #aaa;
-            border-radius: 15px;
-            margin-top: 10px;
-            padding-top: 15px;
-            background-color: #f8f8f8;
-        }
-        QGroupBox::title {
-            subcontrol-origin: margin;
-            subcontrol-position: top center;
-            padding: 0 10px;
-            background-color: #f8f8f8;
-        }
-    )");
-
+    logGroupBox->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
     logTextEdit = new QTextEdit;
     logTextEdit->setReadOnly(true);
 
-    logTextEdit->setStyleSheet(R"(
-        QTextEdit {
-            background-color: #ffffff;
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 5px;
-        }
-    )");
+    logTextEdit->setStyleSheet(ThemeStyles::logTextEdit());
 
     QPushButton *clearLog = new QPushButton("🗑 Очистить окно сообщений");
+    clearLog->setStyleSheet(ThemeStyles::lightButtonStyle());
     layout->addWidget(logTextEdit);
     layout->addWidget(clearLog);
 
@@ -254,194 +160,249 @@ void MainWindow::clearTopArea()
     }
 }
 
+
 void MainWindow::onLab1Clicked()
 {
-    clearTopArea();
+    hideAllPanels();
     logTextEdit->append("=== Задать параметры кода ===");
+    runOctaveButton->hide();  // спрятать кнопку в Лабе 1
 
-    QLabel *title = new QLabel("Параметры кода:");
-    title->setAlignment(Qt::AlignCenter);
+    // создаём панель только один раз
+    if (!lab1Panel) {
+        lab1Panel = new QWidget;
+        QVBoxLayout *layout = new QVBoxLayout(lab1Panel);
 
-    QWidget *contentWidget = new QWidget;
-    QFormLayout *formLayout = new QFormLayout(contentWidget);
-    formLayout->setVerticalSpacing(15);
-    formLayout->setHorizontalSpacing(10);
+        QLabel *title = new QLabel("Параметры кода");
+        title->setAlignment(Qt::AlignCenter);
+        title->setStyleSheet("font-size:18px; font-weight:bold;");
 
-    QLabel *labelCodeLength = new QLabel("Длина кодового слова (n):");
-    spinCodeLength = new QSpinBox;
-    spinCodeLength->setRange(1, 1000);
-    spinCodeLength->setValue(7);
-    formLayout->addRow(labelCodeLength, spinCodeLength);
 
-    QLabel *labelInfoLength = new QLabel("Длина информационного слова (k):");
-    spinInfoLength = new QSpinBox;
-    spinInfoLength->setRange(1, 1000);
-    spinInfoLength->setValue(4);
-    formLayout->addRow(labelInfoLength, spinInfoLength);
+        QWidget *contentWidget = new QWidget;
+        QFormLayout *formLayout = new QFormLayout(contentWidget);
 
-    QLabel *labelСorrectingAbility = new QLabel("Исправляющая способность кода (t):");
-    spinСorrectingAbility = new QSpinBox;
-    spinСorrectingAbility->setRange(1, 1000);
-    spinСorrectingAbility->setValue(1);
-    formLayout->addRow(labelСorrectingAbility, spinСorrectingAbility);
-
-    QLabel *labelInWordsfoLength = new QLabel("Количество информационных слов:");
-    spinInWordsfoLength = new QSpinBox;
-    spinInWordsfoLength->setRange(1, 1000);
-    spinInWordsfoLength->setValue(16);
-    formLayout->addRow(labelInWordsfoLength, spinInWordsfoLength);
-
-    QPushButton *btnApply = new QPushButton("Применить параметры");
-    QPushButton *btnReset = new QPushButton("Сбросить");
-
-    QHBoxLayout *buttonLayout = new QHBoxLayout;
-    buttonLayout->addWidget(btnApply);
-    buttonLayout->addWidget(btnReset);
-    buttonLayout->addStretch();
-
-    // setupLabels(); // Создание лейблов
-    // labelsVisibleFalse(false);
-
-    topAreaLayout->addWidget(title);
-    topAreaLayout->addSpacing(20);
-    topAreaLayout->addWidget(contentWidget);
-    topAreaLayout->addSpacing(20);
-    topAreaLayout->addLayout(buttonLayout);
-    topAreaLayout->addStretch();
-
-    connect(btnApply, &QPushButton::clicked, this, [this](){
-        qDebug() << "Применены параметры:";
-        qDebug() << "Длина кодового слова:" << spinCodeLength->value();
-        qDebug() << "Длина информационного слова:" << spinInfoLength->value();
-        qDebug() << "Исправляющая способность:" << spinСorrectingAbility->value();
-        qDebug() << "Количество информационных слов:" << spinInWordsfoLength->value();
-    });
-
-    connect(btnReset, &QPushButton::clicked, this, [this](){
+        spinCodeLength = new QSpinBox;
+        spinCodeLength->setRange(1, 1000);
         spinCodeLength->setValue(7);
+        // spinCodeLength->setStyleSheet(ThemeStyles::lightSpinBoxStyle());
+        formLayout->addRow("Длина кодового слова (n):", spinCodeLength);
+
+        spinInfoLength = new QSpinBox;
+        spinInfoLength->setRange(1, 1000);
         spinInfoLength->setValue(4);
+        formLayout->addRow("Длина информационного слова (k):", spinInfoLength);
+
+        spinСorrectingAbility = new QSpinBox;
+        spinСorrectingAbility->setRange(1, 1000);
         spinСorrectingAbility->setValue(1);
+        formLayout->addRow("Исправляющая способность (t):", spinСorrectingAbility);
+
+        spinInWordsfoLength = new QSpinBox;
+        spinInWordsfoLength->setRange(1, 1000);
         spinInWordsfoLength->setValue(16);
-        qDebug() << "Параметры сброшены к значениям по умолчанию";
-    });
+        formLayout->addRow("Количество слов:", spinInWordsfoLength);\
+
+        QPushButton *btnApply = new QPushButton("Применить параметры");
+        btnApply->setStyleSheet(ThemeStyles::lightButtonStyle());
+        layout->addWidget(title);
+        layout->addWidget(contentWidget);
+        layout->addWidget(btnApply);
+        layout->addStretch();
+
+        topAreaLayout->addWidget(lab1Panel);
+    }
+
+    lab1Panel->show();
 }
 
 void MainWindow::onLab2Clicked()
 {
-    clearTopArea();
-    // labelsVisibleFalse(true);
+    hideAllPanels();
     logTextEdit->append("=== Модель кодека с неискажающим каналом ===");
 
-    QLabel *title = new QLabel("Неискажающий канал:");
-    title->setAlignment(Qt::AlignCenter);
+    if (!lab2Panel)
+    {
+        // Создаем панель ЛР2 только один раз
+        lab2Panel = new QWidget;
+        QVBoxLayout *layout = new QVBoxLayout(lab2Panel);
+        layout->setSpacing(15); // Увеличиваем расстояние между виджетами
+        QLabel *title = new QLabel("Неискажающий канал");
+        title->setAlignment(Qt::AlignCenter);
+        title->setStyleSheet("font-size:18px; font-weight:bold;");
 
-    QPushButton *runButton = new QPushButton("Run Octave");
-    runButton->setStyleSheet("font-size:16px; padding:8px; background:#27ae60; color:white; border-radius:6px;");
-    QLabel *statusLabel = new QLabel("Ready");
-    statusLabel->setStyleSheet("background:#ecf0f1; padding:4px;");
+        // Группа для кнопок-секций с горизонтальным layout
+        QGroupBox *buttonsGroup = new QGroupBox("Зависимости");
+        QVBoxLayout *groupLayout = new QVBoxLayout(buttonsGroup);
+        buttonsGroup->setMaximumWidth(410);
 
-    QWidget *contentWidget = new QWidget;
-    QFormLayout *formLayout = new QFormLayout(contentWidget);
-    formLayout->setVerticalSpacing(15);
-    formLayout->setHorizontalSpacing(10);
-    formLayout->addRow(runButton, statusLabel);
+        // Кнопки
+        QPushButton *inputWord = new QPushButton("Входное слово");
+        QPushButton *decodedWord = new QPushButton("Декодированное слово");
+        QPushButton *codeSequence = new QPushButton("Кодовая последовательность (реализация)");
+        QPushButton *comparison = new QPushButton("Сравнение входной и\nдекодированной последовательностей");
+        QPushButton *threeOnOne = new QPushButton("Три на одном");
 
-    QPushButton *inputWord = new QPushButton("Входное слово");
-    QPushButton *decodedWord = new QPushButton("Декодированное слово");
-    QPushButton *codeSequence = new QPushButton("Кодовая последовательность(реализация)");
-    QPushButton *compareInputWordDecodedWord = new QPushButton("Результат сравнения\nвходной последовательности и декодированной");
-    QPushButton *threeOnOne = new QPushButton("Три на одном");
+        inputWord->setStyleSheet(ThemeStyles::lightButtonStyle());
+        decodedWord->setStyleSheet(ThemeStyles::lightButtonStyle());
+        codeSequence->setStyleSheet(ThemeStyles::lightButtonStyle());
+        comparison->setStyleSheet(ThemeStyles::lightButtonStyle());
+        threeOnOne->setStyleSheet(ThemeStyles::lightButtonStyle());
 
-    topAreaLayout->addWidget(title);
-    topAreaLayout->addWidget(contentWidget);
-    topAreaLayout->addSpacing(10);
-    topAreaLayout->addWidget(inputWord);
-    topAreaLayout->addWidget(decodedWord);
-    topAreaLayout->addWidget(codeSequence);
-    topAreaLayout->addWidget(compareInputWordDecodedWord);
-    topAreaLayout->addWidget(threeOnOne);
+        groupLayout->addWidget(inputWord);
+        groupLayout->addWidget(decodedWord);
+        groupLayout->addWidget(codeSequence);
+        groupLayout->addWidget(comparison);
+        groupLayout->addWidget(threeOnOne);
+
+        // Добавление в layout
+        layout->addWidget(title);
+        layout->addWidget(buttonsGroup);
+
+        runOctaveButton->show();
+        layout->addStretch();
+
+        // Добавить панель в верхнюю область
+        topAreaLayout->insertWidget(0, lab2Panel);
+    }
+
+    lab2Panel->show();
+    runOctaveButton->show();  // <-- переносим сюда!
     topAreaLayout->addStretch();
 }
+
+
 
 void MainWindow::onLab3Clicked()
 {
-    clearTopArea();
-    // labelsVisibleFalse(true);
-    logTextEdit->append("=== Модель канала ДСК ===");
+    hideAllPanels();
+    logTextEdit->append("=== Модель канала ДСК (двоичный симметричный канал) ===");
 
-    QLabel *title = new QLabel("Двоичный симметричный канал:");
-    title->setAlignment(Qt::AlignCenter);
+    if (!lab3Panel)
+    {
+        lab3Panel = new QWidget;
+        QVBoxLayout *layout = new QVBoxLayout(lab3Panel);
+        // Увеличиваем отступы между элементами в основном layout
+        layout->setSpacing(15); // Увеличиваем расстояние между виджетами
 
-    QPushButton *runButton = new QPushButton("Run Octave");
-    runButton->setStyleSheet("font-size:16px; padding:8px; background:#27ae60; color:white; border-radius:6px;");
-    QLabel *statusLabel = new QLabel("Ready");
-    statusLabel->setStyleSheet("background:#ecf0f1; padding:4px;");
+        // Заголовок
+        QLabel *title = new QLabel("Двоичный симметричный канал (ДСК)");
+        title->setAlignment(Qt::AlignCenter);
+        title->setStyleSheet("font-size:18px; font-weight:bold;");
 
-    QWidget *contentWidget = new QWidget;
-    QFormLayout *formLayout = new QFormLayout(contentWidget);
-    formLayout->setVerticalSpacing(15);
-    formLayout->setHorizontalSpacing(10);
+        // Параметр: вероятность ошибки канала
+        QLabel *labelProbabilityChannelError = new QLabel("Вероятность канальной ошибки (p):");
+        QDoubleSpinBox *spinProbabilityChannelError = new QDoubleSpinBox;
+        spinProbabilityChannelError->setRange(0.0, 1.0);
+        spinProbabilityChannelError->setSingleStep(0.01);
+        spinProbabilityChannelError->setValue(0.1);
+        spinProbabilityChannelError->setMaximumWidth(80);
 
-    QLabel *labelProbabilityChannelError = new QLabel("Вероятность канальной ошибки:");
-    QDoubleSpinBox *spinProbabilityChannelError = new QDoubleSpinBox;
-    spinProbabilityChannelError->setRange(0.0, 1.0);
-    spinProbabilityChannelError->setValue(0.1);
-    spinProbabilityChannelError->setSingleStep(0.01);
-    formLayout->addRow(labelProbabilityChannelError, spinProbabilityChannelError);
-    formLayout->addRow(runButton, statusLabel);
+        // Формовый layout
+        QFormLayout *formLayout = new QFormLayout;
+        formLayout->setVerticalSpacing(8);
 
-    QPushButton *sequenceAtTheEncoderOutput = new QPushButton("Последовательность на выходе кодера");
-    QPushButton *sequenceAtTheInputOfTheDecoder = new QPushButton("Последовательность на входе декодера");
-    QPushButton *errorVector = new QPushButton("Вектор ошибок");
+        formLayout->addRow(labelProbabilityChannelError, spinProbabilityChannelError);
 
-    topAreaLayout->addWidget(title);
-    topAreaLayout->addWidget(contentWidget);
-    topAreaLayout->addSpacing(10);
-    topAreaLayout->addWidget(sequenceAtTheEncoderOutput);
-    topAreaLayout->addWidget(sequenceAtTheInputOfTheDecoder);
-    topAreaLayout->addWidget(errorVector);
+        // Группа для кнопок-секций с горизонтальным layout
+        QGroupBox *buttonsGroup = new QGroupBox("Зависимости");
+        QVBoxLayout *groupLayout = new QVBoxLayout(buttonsGroup);
+
+        // Кнопки-секции
+        QPushButton *sequenceAtTheEncoderOutput = new QPushButton("Выход кодера");
+        QPushButton *sequenceAtTheInputOfTheDecoder = new QPushButton("Вход декодера");
+        QPushButton *errorVector = new QPushButton("Вектор ошибок");
+
+        sequenceAtTheEncoderOutput->setStyleSheet(ThemeStyles::lightButtonStyle());
+        sequenceAtTheInputOfTheDecoder->setStyleSheet(ThemeStyles::lightButtonStyle());
+        errorVector->setStyleSheet(ThemeStyles::lightButtonStyle());
+
+        buttonsGroup->setMaximumWidth(280);
+
+        // Добавляем кнопки в группу
+        groupLayout->addWidget(sequenceAtTheEncoderOutput);
+        groupLayout->addWidget(sequenceAtTheInputOfTheDecoder);
+        groupLayout->addWidget(errorVector);
+
+        // Добавление на панель
+        layout->addWidget(title);
+        layout->addLayout(formLayout);
+        // layout->addSpacing(15);
+        layout->addWidget(buttonsGroup);
+        // layout->addWidget(runOctaveButton);
+        runOctaveButton->show();
+        layout->addStretch();
+
+        // Добавить панель в верхнюю рабочую область
+        topAreaLayout->insertWidget(0, lab3Panel);
+    }
+
+    lab3Panel->show();
+    runOctaveButton->show();  // <-- переносим сюда!
     topAreaLayout->addStretch();
 }
+
 
 void MainWindow::onLab4Clicked()
 {
-    clearTopArea();
-    // labelsVisibleFalse(true);
+    hideAllPanels();
     logTextEdit->append("=== Модель кодека с искажающим ДСК ===");
 
-    QLabel *title = new QLabel("Кодек с искажающим каналом:");
-    title->setAlignment(Qt::AlignCenter);
+    if (!lab4Panel)
+    {
+        lab4Panel = new QWidget;
+        QVBoxLayout *layout = new QVBoxLayout(lab4Panel);
+        layout->setSpacing(15); // Увеличиваем расстояние между виджетами
+        // Заголовок
+        QLabel *title = new QLabel("Кодек с искажающим двоичным симметричным каналом (ДСК)");
+        title->setAlignment(Qt::AlignCenter);
+        title->setStyleSheet("font-size:18px; font-weight:bold;");
 
-    QWidget *contentWidget = new QWidget;
-    QFormLayout *formLayout = new QFormLayout(contentWidget);
-    formLayout->setVerticalSpacing(15);
-    formLayout->setHorizontalSpacing(10);
+        // Вероятность ошибки
+        QLabel *labelProbabilityChannelError = new QLabel("Вероятность канальной ошибки (p):");
+        QDoubleSpinBox *spinProbabilityChannelError = new QDoubleSpinBox;
+        spinProbabilityChannelError->setRange(0.0, 1.0);
+        spinProbabilityChannelError->setSingleStep(0.01);
+        spinProbabilityChannelError->setValue(0.1);
+        spinProbabilityChannelError->setMaximumWidth(80);
 
-    QLabel *labelProbabilityChannelError = new QLabel("Вероятность канальной ошибки:");
-    QDoubleSpinBox *spinProbabilityChannelError = new QDoubleSpinBox;
-    spinProbabilityChannelError->setRange(0.0, 1.0);
-    spinProbabilityChannelError->setValue(0.1);
-    spinProbabilityChannelError->setSingleStep(0.01);
-    formLayout->addRow(labelProbabilityChannelError, spinProbabilityChannelError);
+        // Формовый блок
+        QFormLayout *formLayout = new QFormLayout;
+        formLayout->setVerticalSpacing(12);
+        formLayout->addRow(labelProbabilityChannelError, spinProbabilityChannelError);
 
-    QPushButton *runButton = new QPushButton("Run Octave");
-    runButton->setStyleSheet("font-size:16px; padding:8px; background:#27ae60; color:white; border-radius:6px;");
-    QLabel *statusLabel = new QLabel("Ready");
-    statusLabel->setStyleSheet("background:#ecf0f1; padding:4px;");
-    formLayout->addRow(runButton, statusLabel);
+        // Группа для кнопок-секций с горизонтальным layout
+        QGroupBox *buttonsGroup = new QGroupBox("Зависимости");
+        QVBoxLayout *groupLayout = new QVBoxLayout(buttonsGroup);
+        buttonsGroup->setMaximumWidth(380);
+        // Кнопки
+        QPushButton *informationSequence = new QPushButton("Информационная последовательность");
+        QPushButton *decoderOutputSequence = new QPushButton("Последовательность на выходе декодера");
+        QPushButton *comparison = new QPushButton("Сравнение информационной и\nдекодированной последовательности");
 
-    QPushButton *informationSequence = new QPushButton("Информационная последовательность");
-    QPushButton *decoderOutputSequence = new QPushButton("Последовательность на выходе декодера");
-    QPushButton *compareInformationAndDecoderOutput = new QPushButton("Сравнение информационной и\nдекодированной последовательности");
+        informationSequence->setStyleSheet(ThemeStyles::lightButtonStyle());
+        decoderOutputSequence->setStyleSheet(ThemeStyles::lightButtonStyle());
+        comparison->setStyleSheet(ThemeStyles::lightButtonStyle());
 
-    topAreaLayout->addWidget(title);
-    topAreaLayout->addWidget(contentWidget);
-    topAreaLayout->addSpacing(10);
-    topAreaLayout->addWidget(informationSequence);
-    topAreaLayout->addWidget(decoderOutputSequence);
-    topAreaLayout->addWidget(compareInformationAndDecoderOutput);
+        groupLayout->addWidget(informationSequence);
+        groupLayout->addWidget(decoderOutputSequence);
+        groupLayout->addWidget(comparison);
+
+        // Сборка панели
+        layout->addWidget(title);
+        layout->addLayout(formLayout);
+        layout->addWidget(buttonsGroup);
+        runOctaveButton->show();
+        layout->addStretch();
+
+        // Добавляем панель в верхнюю область
+        topAreaLayout->insertWidget(0, lab4Panel);
+    }
+
+    lab4Panel->show();
+    runOctaveButton->show();  // <-- переносим сюда!
     topAreaLayout->addStretch();
+
 }
+
 
 void MainWindow::onLabButtonClicked()
 {
@@ -453,50 +414,4 @@ void MainWindow::onLabButtonClicked()
     qDebug() << "Button clicked:" << labName;
 }
 
-// void MainWindow::setupLabels() {
 
-
-
-//     // Соединяем изменение спинбокса с обновлением лейбла
-//     connect(spinCodeLength, QOverload<int>::of(&QSpinBox::valueChanged),
-//             this, [this](int value) {
-//                 labelCodeLength->setText(QString("💡 Длина кодового слова (n): %1").arg(value));
-//             });
-
-//     // Соединяем изменение спинбокса с обновлением лейбла
-//     connect(spinInfoLength, QOverload<int>::of(&QSpinBox::valueChanged),
-//             this, [this](int value) {
-//                 labelInfoLength->setText(QString("💡 Длина кодового слова (n): %1").arg(value));
-//             });
-
-
-//     // Соединяем изменение спинбокса с обновлением лейбла
-//     connect(spinСorrectingAbility, QOverload<int>::of(&QSpinBox::valueChanged),
-//             this, [this](int value) {
-//                 labelСorrectingAbility->setText(QString("💡 Длина кодового слова (n): %1").arg(value));
-//             });
-
-
-//     // Соединяем изменение спинбокса с обновлением лейбла
-//     connect(spinInWordsfoLength, QOverload<int>::of(&QSpinBox::valueChanged),
-//             this, [this](int value) {
-//                 labelWordsfoLength->setText(QString("💡 Длина кодового слова (n): %1").arg(value));
-//             });
-
-// }
-
-// void MainWindow::labelsVisibleFalse(bool labelslive) {
-
-//     if (!labelslive) {
-//         labelCodeLength->setVisible(false);
-//         labelInfoLength->setVisible(false);
-//         labelСorrectingAbility->setVisible(false);
-//         labelWordsfoLength->setVisible(false);
-//     } else {
-//         labelCodeLength->setVisible(true);
-//         labelInfoLength->setVisible(true);
-//         labelСorrectingAbility->setVisible(true);
-//         labelWordsfoLength->setVisible(true);
-//     }
-
-// }

@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <QLabel>
+#include "themestyles.h"
 
 
 class MainWindow : public QWidget
@@ -47,14 +48,11 @@ private:
     QPushButton *btnLab3;
     QPushButton *btnLab4;
 
+    QPushButton *runOctaveButton;
+
     QPushButton *saveLog;
     QPushButton *toggleTheme;
 
-    // Labels
-    QLabel *labelCodeLength = nullptr;
-    QLabel *labelInfoLength = nullptr;
-    QLabel *labelСorrectingAbility = nullptr;
-    QLabel *labelWordsfoLength = nullptr;
 
     // SpinBoxes
 
@@ -78,8 +76,8 @@ private:
     QWidget *lab4Panel;
 
 
-    // void setupLabels();
-    // void labelsVisibleFalse(bool labelslive);
+    void hideAllPanels();
+
 };
 
 #endif // MAINWINDOW_H
