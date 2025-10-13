@@ -1,83 +1,36 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
+#pragma once
 #include <QWidget>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QPushButton>
+#include <QStackedWidget>
 #include <QTextEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QGroupBox>
-#include <QSpinBox>
-#include <QLabel>
-#include "themestyles.h"
 
-
-class MainWindow : public QWidget
-{
+class MainWindow : public QWidget {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = nullptr);
+
+private:
+    QWidget* createLeftPanel();
+    QWidget* createTopArea();
+
+    QStackedWidget *stack = nullptr;
+    QTextEdit *logTextEdit = nullptr;
+    QPushButton *runOctaveButton = nullptr;
+
+    // Left panel buttons
+    QPushButton *btnLab1 = nullptr;
+    QPushButton *btnLab2 = nullptr;
+    QPushButton *btnLab3 = nullptr;
+    QPushButton *btnLab4 = nullptr;
 
 private slots:
     void onLab1Clicked();
     void onLab2Clicked();
     void onLab3Clicked();
     void onLab4Clicked();
-    void onLabButtonClicked();
-
-private:
-    // Layouts
-    QHBoxLayout *mainLayout;
-    QVBoxLayout *leftLayout;
-    QVBoxLayout *rightLayout;
-    QVBoxLayout *topAreaLayout;
-
-    // GroupBoxes
-    QGroupBox *leftGroupBox;
-    QGroupBox *topGroupBox;
-    QGroupBox *logGroupBox;
-
-    // Widgets
-    QWidget *topArea;
-    QTextEdit *logTextEdit;
-
-    // Buttons
-    QPushButton *btnLab1;
-    QPushButton *btnLab2;
-    QPushButton *btnLab3;
-    QPushButton *btnLab4;
-
-    QPushButton *runOctaveButton;
-
-    QPushButton *saveLog;
-    QPushButton *toggleTheme;
-
-
-    // SpinBoxes
-
-    QSpinBox *spinCodeLength = nullptr;
-    QSpinBox *spinInfoLength = nullptr;
-    QSpinBox *spinСorrectingAbility = nullptr;
-    QSpinBox *spinInWordsfoLength = nullptr;
-
-
-
-    // Private methods
-    QGroupBox* createLeftPanel();
-    QGroupBox* createTopPanel();
-    QGroupBox* createLogPanel();
-    void setupConnections();
-    void clearTopArea();
-
-    QWidget *lab1Panel;
-    QWidget *lab2Panel;
-    QWidget *lab3Panel;
-    QWidget *lab4Panel;
-
-
-    void hideAllPanels();
-
+    void onStackIndexChanged(int idx);
+    void appendLog(const QString &msg);
 };
-
-#endif // MAINWINDOW_H

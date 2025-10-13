@@ -81,6 +81,25 @@ QString ThemeStyles::lightButtonStyle() {
         }
     )";
 }
+//QString ThemeStyles::lightButtonStyle() {
+//    return R"(
+//        QPushButton {
+//            color: black;
+//            background-color: #ffffff;
+//            border: 1px solid #aaa;
+//            border-radius: 15px;
+//            padding: 5px;
+//            font-size: 11px;
+
+//        }
+//        QPushButton:hover {
+//            background-color: #e0e0e0 ;
+//        }
+//        QPushButton:pressed {
+//            background-color: #d0d0d0 ;
+//        }
+//    )";
+//}
 
 QString ThemeStyles::OctaveButtonStyle() {
     return R"(
@@ -102,19 +121,37 @@ QString ThemeStyles::OctaveButtonStyle() {
     )";
 }
 
+//QString ThemeStyles::lightGroupBoxStyle() {
+//    return R"(
+//        QGroupBox {
+//            color: black;
+//            border: 1px solid #555;
+//            border-radius: 10px;
+//            margin-top: 13px;
+//            padding-top: 5px;
+//        }
+//        QGroupBox::title {
+//            subcontrol-origin: margin;
+//            subcontrol-position: top center;
+//            background-color: #f0f0f0;
+//        }
+//    )";
+//}
+
 QString ThemeStyles::lightGroupBoxStyle() {
     return R"(
         QGroupBox {
-            color: black;
             border: 1px solid #555;
             border-radius: 10px;
             margin-top: 13px;
             padding-top: 5px;
+            background-color: white;
         }
         QGroupBox::title {
             subcontrol-origin: margin;
             subcontrol-position: top center;
             background-color: #f0f0f0;
+
         }
     )";
 }
@@ -144,14 +181,27 @@ QString ThemeStyles::lightComboBoxStyle() {
     return "QComboBox { color: black; background-color:#ffffff; }";
 }
 
+//QString ThemeStyles::logTextEdit() {
+//    return  R"(
+//            QTextEdit {
+//                border: 1px solid palette(mid);
+//                border-radius: 8px;
+//                padding: 5px;
+//                background-color: palette(base);
+//                color: palette(text);
+//            }
+//     )";
+//}
 QString ThemeStyles::logTextEdit() {
     return  R"(
-            QTextEdit {
-                border: 1px solid palette(mid);
-                border-radius: 8px;
-                padding: 5px;
-                background-color: palette(base);
-                color: palette(text);
-            }
-     )";
+        QTextEdit {
+            border: 1px solid #888;
+            border-radius: 8px;
+            padding: 5px;
+            background-color: #f8f8f8;
+            color: #000000;
+            font-family: "Times New Roman";
+            font-size: 12pt;
+        }
+    )";
 }
