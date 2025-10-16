@@ -145,7 +145,7 @@ QString ThemeStyles::lightGroupBoxStyle() {
             border-radius: 10px;
             margin-top: 13px;
             padding-top: 5px;
-            background-color: white;
+            background-color: #f0f0f0;
         }
         QGroupBox::title {
             subcontrol-origin: margin;

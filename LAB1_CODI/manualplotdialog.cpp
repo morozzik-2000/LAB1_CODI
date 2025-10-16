@@ -7,8 +7,15 @@
 #include "qcustomplot.h"
 
 
-ManualPlotDialog::ManualPlotDialog(QWidget *parent)
-    : QDialog(parent)
+ManualPlotDialog::ManualPlotDialog(
+        const QString &instructionText,
+        const QString &yAxisLabel,
+        const QString &plotTitle,
+        QWidget *parent)
+        : QDialog(parent),
+          m_instructionText(instructionText),
+          m_yAxisLabel(yAxisLabel),
+          m_plotTitle(plotTitle)
 {
     setupUI();
 }
@@ -21,8 +28,7 @@ void ManualPlotDialog::setupUI()
     auto *layout = new QVBoxLayout(this);
 
     // Инструкция
-    auto *instructionLabel = new QLabel(
-        "Введите значения вероятности канальной ошибки (p_k) и количество ошибок в декодере:");
+    auto *instructionLabel = new QLabel(m_instructionText);
     layout->addWidget(instructionLabel);
 
     // Таблица для ввода точек
@@ -144,7 +150,7 @@ void ManualPlotDialog::plotGraph()
 
     // Создаем окно для графика
     auto *plotDialog = new QDialog(this);
-    plotDialog->setWindowTitle("График BER для BCH(127,64,10)");
+    plotDialog->setWindowTitle(m_plotTitle);
     plotDialog->setMinimumSize(1000, 700);
 
     auto *layout = new QVBoxLayout(plotDialog);
@@ -154,7 +160,7 @@ void ManualPlotDialog::plotGraph()
     layout->addWidget(customPlot);
 
     // Рассчитываем BER
-    const int N_dec_new = 64000; // 64 бита × 1000 слов !!!!! сюда динамически доавблять
+    const int N_dec_new = 64000; // 64 бита × 1000 слов
     QVector<double> berValues;
     for (double errors : m_errorValues) {
         berValues.append(errors / N_dec_new);
@@ -183,32 +189,114 @@ void ManualPlotDialog::plotGraph()
 
     // Настройка осей
     customPlot->xAxis->setLabel("Вероятность канальной ошибки p_k");
-    customPlot->yAxis->setLabel("BER_{дк} на выходе декодера");
+    customPlot->yAxis->setLabel(m_yAxisLabel);
     customPlot->xAxis->setRange(0, *std::max_element(sortedPk.constBegin(), sortedPk.constEnd()) * 1.1);
     customPlot->yAxis->setRange(0, *std::max_element(sortedBer.constBegin(), sortedBer.constEnd()) * 1.1);
 
+    // Включаем взаимодействия
     customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+
+    // Создаем список для хранения выделенных областей
+    QList<QCPItemRect*> highlightedAreas;
+
+    // Переменные для выделения области
+    QPointF selectionStart, selectionEnd;
+    bool isSelecting = false;
+    QCPItemRect *currentSelectionRect = nullptr;
+
+    // Обработчик нажатия мыши - начало выделения
+    connect(customPlot, &QCustomPlot::mousePress, [=, &isSelecting, &selectionStart, &currentSelectionRect](QMouseEvent *event) {
+        if (event->button() == Qt::RightButton) { // Выделение правой кнопкой мыши
+            isSelecting = true;
+            double x = customPlot->xAxis->pixelToCoord(event->pos().x());
+            double y = customPlot->yAxis->pixelToCoord(event->pos().y());
+            selectionStart = QPointF(x, y);
+
+            // Создаем прямоугольник выделения
+            currentSelectionRect = new QCPItemRect(customPlot);
+            currentSelectionRect->setBrush(QBrush(QColor(255, 0, 0, 80))); // Полупрозрачный красный
+            currentSelectionRect->setPen(QPen(Qt::red, 2));
+            currentSelectionRect->topLeft->setType(QCPItemPosition::ptPlotCoords);
+            currentSelectionRect->bottomRight->setType(QCPItemPosition::ptPlotCoords);
+            currentSelectionRect->topLeft->setCoords(selectionStart.x(), selectionStart.y());
+            currentSelectionRect->bottomRight->setCoords(selectionStart.x(), selectionStart.y());
+        }
+    });
+
+    // Обработчик движения мыши - обновление выделения
+    connect(customPlot, &QCustomPlot::mouseMove, [=, &isSelecting, &selectionStart, &currentSelectionRect, &selectionEnd](QMouseEvent *event) {
+        if (isSelecting && currentSelectionRect) {
+            double x = customPlot->xAxis->pixelToCoord(event->pos().x());
+            double y = customPlot->yAxis->pixelToCoord(event->pos().y());
+            selectionEnd = QPointF(x, y);
+
+            // Обновляем размеры прямоугольника
+            double left = qMin(selectionStart.x(), selectionEnd.x());
+            double right = qMax(selectionStart.x(), selectionEnd.x());
+            double top = qMin(selectionStart.y(), selectionEnd.y());
+            double bottom = qMax(selectionStart.y(), selectionEnd.y());
+
+            currentSelectionRect->topLeft->setCoords(left, top);
+            currentSelectionRect->bottomRight->setCoords(right, bottom);
+            customPlot->replot();
+        }
+    });
+
+    // Обработчик отпускания мыши - завершение выделения
+    connect(customPlot, &QCustomPlot::mouseRelease, [=, &isSelecting, &highlightedAreas, &currentSelectionRect](QMouseEvent *event) {
+        if (event->button() == Qt::RightButton && isSelecting) {
+            isSelecting = false;
+            if (currentSelectionRect) {
+                highlightedAreas.append(currentSelectionRect);
+                currentSelectionRect = nullptr;
+                customPlot->replot();
+            }
+        }
+    });
+
     customPlot->axisRect()->setupFullAxesBox();
 
     // Добавляем информацию о коде прямо на график
     QCPItemText *textLabel = new QCPItemText(customPlot);
     textLabel->setPositionAlignment(Qt::AlignTop|Qt::AlignLeft);
     textLabel->position->setType(QCPItemPosition::ptAxisRectRatio);
-    textLabel->position->setCoords(0.05, 0.08); // позиция в относительных координатах
+    textLabel->position->setCoords(0.05, 0.08);
     textLabel->setText(QString("BCH(127,64,10)\nN = %1 бит").arg(N_dec_new));
     textLabel->setFont(QFont(font().family(), 10));
     textLabel->setPen(QPen(Qt::black));
     textLabel->setBrush(QBrush(Qt::white));
     textLabel->setPadding(QMargins(5, 5, 5, 5));
 
+    // Добавляем инструкцию по выделению
+    QCPItemText *instructionText = new QCPItemText(customPlot);
+    instructionText->setPositionAlignment(Qt::AlignTop|Qt::AlignRight);
+    instructionText->position->setType(QCPItemPosition::ptAxisRectRatio);
+    instructionText->position->setCoords(0.95, 0.02);
+    instructionText->setText("ЛКМ: перемещение/масштабирование\nПКМ+перетаскивание: выделение области");
+    instructionText->setFont(QFont(font().family(), 8));
+    instructionText->setPen(QPen(Qt::darkGray));
+    instructionText->setTextAlignment(Qt::AlignRight);
+
     customPlot->replot();
 
-    // Кнопки для управления - ДОБАВЛЯЕМ КНОПКУ СОХРАНЕНИЯ
-    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
+    // Кнопки для управления
+    auto *buttonBox = new QDialogButtonBox();
 
-    // Добавляем кнопку сохранения
-    auto *saveButton = new QPushButton("Save");
+    // Кнопка закрытия
+    auto *closeButton = new QPushButton("Закрыть");
+    buttonBox->addButton(closeButton, QDialogButtonBox::RejectRole);
+
+    // Кнопка сохранения
+    auto *saveButton = new QPushButton("Сохранить");
     buttonBox->addButton(saveButton, QDialogButtonBox::ActionRole);
+
+    // Кнопка сброса масштаба
+    auto *resetZoomButton = new QPushButton("Сбросить масштаб");
+    buttonBox->addButton(resetZoomButton, QDialogButtonBox::ActionRole);
+
+    // Кнопка очистки выделений
+    auto *clearHighlightsButton = new QPushButton("Очистить выделения");
+    buttonBox->addButton(clearHighlightsButton, QDialogButtonBox::ActionRole);
 
     layout->addWidget(buttonBox);
 
@@ -217,7 +305,24 @@ void ManualPlotDialog::plotGraph()
         savePlot(customPlot);
     });
 
-    connect(buttonBox, &QDialogButtonBox::rejected, plotDialog, &QDialog::reject);
+    // Подключаем кнопку сброса масштаба
+    connect(resetZoomButton, &QPushButton::clicked, this, [=]() {
+        customPlot->xAxis->setRange(0, *std::max_element(sortedPk.constBegin(), sortedPk.constEnd()) * 1.1);
+        customPlot->yAxis->setRange(0, *std::max_element(sortedBer.constBegin(), sortedBer.constEnd()) * 1.1);
+        customPlot->replot();
+    });
+
+    // Подключаем кнопку очистки выделений
+    connect(clearHighlightsButton, &QPushButton::clicked, this, [=, &highlightedAreas]() {
+        // Удаляем все выделенные области
+        for (QCPItemRect *rect : highlightedAreas) {
+            customPlot->removeItem(rect);
+        }
+        highlightedAreas.clear();
+        customPlot->replot();
+    });
+
+    connect(closeButton, &QPushButton::clicked, plotDialog, &QDialog::reject);
 
     plotDialog->exec();
 }

@@ -30,16 +30,16 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     buttonsGroup->setMaximumWidth(300);
     QVBoxLayout *gl = new QVBoxLayout(buttonsGroup);
 
-//    QGroupBox *buttonsHandGroup = new QGroupBox("Построить вручную");
-//    buttonsHandGroup->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
-//    buttonsHandGroup->setMaximumWidth(300);
-//    QVBoxLayout *glh = new QVBoxLayout(buttonsHandGroup);
+    QGroupBox *buttonsHandGroup = new QGroupBox("Построить вручную");
+    buttonsHandGroup->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
+    buttonsHandGroup->setMaximumWidth(300);
+    QVBoxLayout *glh = new QVBoxLayout(buttonsHandGroup);
 
     auto *outEnc = new QPushButton("Выход кодера");
     auto *inDec = new QPushButton("Вход декодера");
     auto *errVec = new QPushButton("Вектор ошибок");
 
-//    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n на выходе декодера");
+    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n от \nвероятности канальной ошибки\n на входе декодера");
 
 
 
@@ -49,18 +49,28 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     gl->addWidget(errVec);
 
 
-//    glh->addWidget(ber_dk);
+    glh->addWidget(ber_dk);
 
     connect(outEnc, &QPushButton::clicked, this, [=](){ emit logMessage("Показано: Выход кодера"); });
     connect(inDec, &QPushButton::clicked, this, [=](){ emit logMessage("Показано: Вход декодера"); });
     connect(errVec, &QPushButton::clicked, this, [=](){ emit logMessage("Показано: Вектор ошибок"); });
 
-//    connect(ber_dk, &QPushButton::clicked, this, [=](){ emit logMessage("Выбрано: Зависимость битовой ошибки на выходе декодера"); });
+    connect(ber_dk, &QPushButton::clicked, this, [=](){ emit logMessage("Выбрано: Зависимость битовой ошибки на выходе декодера");
+
+    ManualPlotDialog dialog(
+                    "Введите значения вероятности канальной ошибки (p_k) и количество ошибок на входе декодере:",
+                    "BER_{дк} на входе декодера",
+                    "График BER для BCH(127,64,10)",
+                    this);
+        if (dialog.exec() == QDialog::Accepted) {
+            emit logMessage("График успешно построен");
+        }
+    });
 
     layout->addWidget(title);
     layout->addLayout(form);
     layout->addWidget(buttonsGroup);
-//    layout->addWidget(buttonsHandGroup);
+    layout->addWidget(buttonsHandGroup);
     layout->addStretch();
 
 }

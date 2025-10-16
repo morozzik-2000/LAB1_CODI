@@ -1,15 +1,29 @@
 #include "Lab1Panel.h"
+#include "CodecDiagramWidget.h"
 #include "themestyles.h"
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QPushButton>
+#include <QPushButton>
 
 Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
 {
     auto *layout = new QVBoxLayout(this);
     layout->setSpacing(10);
+
+    // Добавляем заголовок для схемы
+        QLabel *diagramTitle = new QLabel("Схема системы передачи данных");
+        diagramTitle->setAlignment(Qt::AlignCenter);
+        diagramTitle->setStyleSheet("font-size:16px; font-weight:bold; margin:10px;");
+        layout->addWidget(diagramTitle);
+
+        // Добавляем виджет с диаграммой
+        CodecDiagramWidget *diagram = new CodecDiagramWidget;
+        diagram->setStyleSheet("background-color: white; border: 1px solid #ccc; border-radius: 5px;");
+        layout->addWidget(diagram);
+
 
     QLabel *title = new QLabel("Параметры кода");
     title->setAlignment(Qt::AlignCenter);

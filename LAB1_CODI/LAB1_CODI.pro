@@ -11,6 +11,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    codecdiagramwidget.cpp \
     lab1panel.cpp \
     lab2panel.cpp \
     lab3panel.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
     themestyles.cpp
 
 HEADERS += \
+    codecdiagramwidget.h \
     lab1panel.h \
     lab2panel.h \
     lab3panel.h \

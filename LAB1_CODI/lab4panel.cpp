@@ -41,7 +41,7 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
 
 
 
-    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n на выходе декодера");
+    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n от \nвероятности канальной ошибки\n на выходе декодера");
 
 
     for (auto *b : {infoSeq, decOut, cmp, ber_dk}) b->setStyleSheet(ThemeStyles::lightButtonStyle());
@@ -57,8 +57,11 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
 
     connect(ber_dk, &QPushButton::clicked, this, [=](){ emit logMessage("Выбрано: Зависимость битовой ошибки на выходе декодера");
 
-
-        ManualPlotDialog dialog(this);
+    ManualPlotDialog dialog(
+                    "Введите значения вероятности канальной ошибки (p_k) и количество ошибок на выходе декодере:",
+                    "BER_{дк} на выходе декодера",
+                    "График BER для BCH(127,64,10)",
+                    this);
         if (dialog.exec() == QDialog::Accepted) {
             emit logMessage("График успешно построен");
         }
