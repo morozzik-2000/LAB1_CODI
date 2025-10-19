@@ -155,6 +155,17 @@ QWidget* MainWindow::createTopArea()
 
     connect(stack, &QStackedWidget::currentChanged, this, &MainWindow::onStackIndexChanged);
 
+    octRunner = new OctaveRunner(this);
+    connect(runOctaveButton, &QPushButton::clicked, this, [=](){
+        Lab1Panel *p1 = qobject_cast<Lab1Panel*>(stack->widget(0));
+        OctaveParams params = p1->getParams();
+        octRunner->runOctave(params);
+    });
+    connect(octRunner, &OctaveRunner::logMessage, this, &MainWindow::appendLog);
+    connect(octRunner, &OctaveRunner::errorOccurred, this, &MainWindow::appendLog);
+    connect(octRunner, &OctaveRunner::finished, this, [=](){ appendLog("Octave finished!"); });
+
+
     layout->addWidget(stack);
     layout->addStretch();
     layout->addWidget(runOctaveButton, 0, Qt::AlignTop);

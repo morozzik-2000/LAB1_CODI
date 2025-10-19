@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGroupBox>
+#include "OctaveRunner.h"
 
 class MainWindow : public QWidget {
     Q_OBJECT
@@ -19,7 +20,7 @@ private:
     QStackedWidget *stack = nullptr;
     QTextEdit *logTextEdit = nullptr;
     QPushButton *runOctaveButton = nullptr;
-
+    OctaveRunner * octRunner= nullptr;
     // Left panel buttons
     QPushButton *btnLab1 = nullptr;
     QPushButton *btnLab2 = nullptr;

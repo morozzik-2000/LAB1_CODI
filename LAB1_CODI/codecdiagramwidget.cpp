@@ -1,6 +1,7 @@
 #include "CodecDiagramWidget.h"
 #include <QPainter>
 #include <QtMath>
+#include <QPainterPath>
 
 CodecDiagramWidget::CodecDiagramWidget(QWidget *parent)
     : QWidget(parent)
