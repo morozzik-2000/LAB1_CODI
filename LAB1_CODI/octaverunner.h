@@ -3,22 +3,23 @@
 #include <QProcess>
 #include <QObject>
 #include <QVector>
+#include "OctaveParams.h"
 
-struct OctaveParams {
-    int n;
-    int k;
-    int t;
-    int numWords;
-    double errorProb;
-    int part;
-};
+// struct OctaveParams {
+//     int n;
+//     int k;
+//     int t;
+//     int numWords;
+//     double errorProb;
+//     int part;
+// };
 
 class OctaveRunner : public QObject {
     Q_OBJECT
 public:
     explicit OctaveRunner(QObject *parent = nullptr);
 
-    void runOctave(const OctaveParams &params);
+    void runOctave(OctaveParams_ &params);
 
 signals:
     void finished();
@@ -27,7 +28,7 @@ signals:
     void plotDataReady(const QString &title, const QVector<double> &x, const QVector<double> &y);
 
 private:
-    void writeOctaveScript(const OctaveParams &params, const QString &scriptPath, const QString &outDir);
+    void writeOctaveScript(OctaveParams_ &params, const QString &scriptPath, const QString &outDir);
 
     QProcess *proc;
     QString outDir;

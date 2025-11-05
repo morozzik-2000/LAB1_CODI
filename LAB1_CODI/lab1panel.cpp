@@ -15,6 +15,7 @@
 #include <QPushButton>
 #include <QPushButton>
 
+
 Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
 {
     auto *layout = new QVBoxLayout(this);
@@ -41,19 +42,19 @@ Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
 
     spinCodeLength = new QSpinBox;
     spinCodeLength->setRange(1, 1000);
-    spinCodeLength->setValue(7);
+    spinCodeLength->setValue(127);
 
     spinInfoLength = new QSpinBox;
     spinInfoLength->setRange(1, 1000);
-    spinInfoLength->setValue(4);
+    spinInfoLength->setValue(92);
 
     spinCorrecting = new QSpinBox;
     spinCorrecting->setRange(0, 1000);
-    spinCorrecting->setValue(1);
+    spinCorrecting->setValue(5);
 
     spinWords = new QSpinBox;
     spinWords->setRange(1, 1000000);
-    spinWords->setValue(16);
+    spinWords->setValue(10);
 
     form->addRow("Длина кодового слова (n):", spinCodeLength);
     form->addRow("Длина информационного слова (k):", spinInfoLength);
@@ -64,7 +65,11 @@ Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
     apply->setStyleSheet(ThemeStyles::lightButtonStyle());
 
     connect(apply, &QPushButton::clicked, [=]() {
-        QString s = QString("Параметры применены: n=%1 k=%2 t=%3 words=%4")
+        QString s = QString("📝 Параметры применены: "
+                            "\n   - 𝐧 (длина кодового слова) = %1 "
+                            "\n   - 𝐤 (длина информационного слова) = %2 "
+                            "\n   - 𝐭 (исправляющая способность) = %3 "
+                            "\n   - Количество слов = %4")
                         .arg(spinCodeLength->value())
                         .arg(spinInfoLength->value())
                         .arg(spinCorrecting->value())
@@ -79,14 +84,14 @@ Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
     layout->addStretch();
 }
 
-OctaveParams Lab1Panel::getParams() const
+OctaveParams_ Lab1Panel::getParams() const
 {
-    OctaveParams p;
+    OctaveParams_ p;
     p.n = spinCodeLength->value();
     p.k = spinInfoLength->value();
     p.t = spinCorrecting->value();
     p.numWords = spinWords->value();
-    p.errorProb = 0.01; // можно сделать отдельный QDoubleSpinBox, если нужно
-    p.part = 1; // по умолчанию, можно менять в зависимости от выбранной панели
+    p.channelErrorProbability = 0.01; // можно сделать отдельный QDoubleSpinBox, если нужно
+
     return p;
 }

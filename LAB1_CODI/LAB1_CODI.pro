@@ -19,11 +19,14 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     manualplotdialog.cpp \
+    octaveparamspart2.cpp \
     octaverunner.cpp \
+    octaverunnerpart3.cpp \
     qcustomplot.cpp \
     themestyles.cpp
 
 HEADERS += \
+    OctaveParams.h \
     codecdiagramwidget.h \
     lab1panel.h \
     lab2panel.h \
@@ -31,7 +34,9 @@ HEADERS += \
     lab4panel.h \
     mainwindow.h \
     manualplotdialog.h \
+    octaveparamspart2.h \
     octaverunner.h \
+    octaverunnerpart3.h \
     qcustomplot.h \
     themestyles.h
 

@@ -3,12 +3,13 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include "OctaveParams.h"
 
 OctaveRunner::OctaveRunner(QObject *parent)
     : QObject(parent), proc(nullptr)
 {}
 
-void OctaveRunner::runOctave(const OctaveParams &params)
+void OctaveRunner::runOctave(OctaveParams_ &params)
 {
     outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
     QDir().mkpath(outDir);
@@ -44,16 +45,18 @@ void OctaveRunner::runOctave(const OctaveParams &params)
 
     proc->start(octaveProgram, args);
     if(!proc->waitForStarted(3000)) {
-        emit errorOccurred("Failed to start Octave");
+        emit errorOccurred("🆘 Не удалось подключится к Octave");
     } else {
-        emit logMessage("Octave started...");
+        emit logMessage("⚙ Octave в процессе выполнения...");
     }
 }
 
-void OctaveRunner::writeOctaveScript(const OctaveParams &p, const QString &path, const QString &outDirLocal)
+void OctaveRunner::writeOctaveScript(OctaveParams_ &p, const QString &path, const QString &outDirLocal)
 {
     QFile f(path);
-    if(!f.open(QIODevice::WriteOnly | QIODevice::Text)) return;
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text))
+        return;
+
     QTextStream ts(&f);
 
     QString script = QString(R"(
@@ -67,9 +70,8 @@ k = %2;
 t = %3;
 num_words_default = %4;
 channel_error_probability = %5;
-part = %6;
 
-out_dir = '%7';
+out_dir = '%6';
 if ~exist(out_dir,'dir'), mkdir(out_dir); end
 
 function save_chart_csv_png(filename, data, out_dir)
@@ -79,7 +81,7 @@ function save_chart_csv_png(filename, data, out_dir)
     close(gcf);
 endfunction
 
-function part1(random_sequence, n, k, t, out_dir)
+function run_bch_model(random_sequence, n, k, t, out_dir)
     encoded_sequence = [];
     decoded_sequence = [];
 
@@ -94,13 +96,13 @@ function part1(random_sequence, n, k, t, out_dir)
         decoded_sequence = [decoded_sequence decoded_msg];
     end
 
-    % Построение трех графиков
+    % --- Построение трёх графиков ---
     figure;
     subplot(3, 1, 1); stem(random_sequence, 'filled'); title('Входная последовательность'); xlabel('Номер'); ylabel('Значение'); grid on;
     subplot(3, 1, 2); stem(encoded_sequence, 'filled'); title('Кодовая последовательность'); xlabel('Номер'); ylabel('Значение'); grid on;
     subplot(3, 1, 3); stem(decoded_sequence, 'filled'); title('Декодированная последовательность'); xlabel('Номер'); ylabel('Значение'); grid on;
 
-    % Одно слово
+    % --- Одно слово ---
     single_word = random_sequence(1:k);
     encoded_word = bchenco(single_word, n, k);
     received_word = encoded_word;
@@ -111,28 +113,31 @@ function part1(random_sequence, n, k, t, out_dir)
     figure; stem(encoded_word, 'filled'); title('Кодовая последовательность (реализация)'); xlabel('Номер'); ylabel('Значение'); grid on;
     figure; stem(decoded_word, 'filled'); title('Декодированное слово'); xlabel('Номер'); ylabel('Значение'); grid on;
 
-    % Разница входа и выхода
+    % --- Разница входа и выхода ---
     difference_sequence = xor(random_sequence, decoded_sequence);
     figure; stem(difference_sequence, 'filled'); title('Сравнение входной и декодированной'); xlabel('Номер'); ylabel('Разница'); grid on;
 
-    % Сохраняем CSV для Qt
+    % --- Сохраняем CSV для Qt ---
     csvwrite(fullfile(out_dir, 'p2_random.csv'), random_sequence);
     csvwrite(fullfile(out_dir, 'p2_encoded.csv'), encoded_sequence);
     csvwrite(fullfile(out_dir, 'p2_decoded.csv'), decoded_sequence);
     csvwrite(fullfile(out_dir, 'p2_compare.csv'), difference_sequence);
 endfunction
 
-% Генерируем случайную последовательность
+% --- Генерируем случайную последовательность ---
 random_sequence = round(rand(1, k * num_words_default));
 
-switch part
-    case 1
-        part1(random_sequence, n, k, t, out_dir);
-    otherwise
-        disp('Выбранная часть не реализована');
-endswitch
-)").arg(p.n).arg(p.k).arg(p.t).arg(p.numWords).arg(p.errorProb).arg(p.part).arg(outDirLocal);
+% --- Запуск основной функции ---
+run_bch_model(random_sequence, n, k, t, out_dir);
+)")
+                         .arg(p.n)
+                         .arg(p.k)
+                         .arg(p.t)
+                         .arg(p.numWords)
+                         .arg(p.channelErrorProbability)
+                         .arg(outDirLocal);
 
     ts << script;
     f.close();
 }
+

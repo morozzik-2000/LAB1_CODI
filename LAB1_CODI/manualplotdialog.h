@@ -9,6 +9,9 @@
 #include <QPushButton>
 #include <QGroupBox>
 #include <QMessageBox>
+#include "Lab1Panel.h"
+#include <QCloseEvent>
+
 class QCustomPlot;
 
 class ManualPlotDialog : public QDialog
@@ -34,6 +37,8 @@ private slots:
     void updateTable();
     void savePlot(QCustomPlot *customPlot);
 
+
+
 private:
     QTableWidget *m_table;
     QVector<double> m_pkValues;
@@ -43,8 +48,12 @@ private:
     QString m_yAxisLabel;
     QString m_plotTitle;
 
+    int n = 127, k = 64, t = 10, numWords = 1000, N_dec_new;
 
     void setupUI();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 };
 
 #endif // MANUALPLOTDIALOG_H
