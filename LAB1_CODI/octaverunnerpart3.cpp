@@ -93,7 +93,7 @@ function part3(n, k, t, channel_error_probability, num_words, out_dir)
         decoded_sequence_3 = [decoded_sequence_3 decoded_msg(end-k+1:end)];
     end
 
-    difference_sequence_3 = xor(random_sequence, decoded_sequence_3);
+    difference_sequence_3 = random_sequence ~= decoded_sequence_3;
     num_errors_3 = sum(difference_sequence_3);
     sequence_length = length(decoded_sequence_3);
 

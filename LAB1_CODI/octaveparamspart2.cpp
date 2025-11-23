@@ -92,7 +92,7 @@ function part2(random_sequence, n, k, t, channel_error_probability, out_dir)
     error_vector = rand(1, length(received_sequence)) < channel_error_probability;
     received_sequence(error_vector) = ~received_sequence(error_vector);
 
-    error_positions = encoded_sequence - received_sequence;
+    error_positions = abs(encoded_sequence - received_sequence);
     num_errors = sum(error_positions ~= 0);
     sequence_length = length(received_sequence);
 

@@ -237,17 +237,59 @@ void MainWindow::appendLog(const QString &msg)
         return;
     }
 
-    // 3️⃣ Обработка QQQ и TTT
-    if (msg.contains("QQQ:")) {
-        // Извлекаем число после QQQ:
+    // Игнорируем сообщения NVIDIA
+    if (msg.contains("kernel rejected pushbuf") ||
+        msg.contains("ch6:") ||
+        msg.contains("Устройство или ресурс занято")) {
+        return;
+    }
+
+    // // 3️⃣ Обработка QQQ и TTT
+    // if (msg.contains("QQQ:")) {
+    //     // Извлекаем число после QQQ:
+    //     QRegularExpression re("QQQ:\\s*(\\d+)");
+    //     QRegularExpressionMatch match = re.match(msg);
+    //     if (match.hasMatch()) {
+    //         QString num = match.captured(1);
+    //         logTextEdit->append("⚠ Количество ошибок в канале: " + num);
+    //     }
+    //     return;
+    // }
+    // Обработка количества ошибок - УЛУЧШЕННАЯ ВЕРСИЯ
+    QString trimmedMsg = msg.trimmed();
+
+    // Случай 1: Сообщение вида "QQQ: 123"
+    if (trimmedMsg.contains("QQQ:")) {
         QRegularExpression re("QQQ:\\s*(\\d+)");
-        QRegularExpressionMatch match = re.match(msg);
+        QRegularExpressionMatch match = re.match(trimmedMsg);
         if (match.hasMatch()) {
             QString num = match.captured(1);
             logTextEdit->append("⚠ Количество ошибок в канале: " + num);
+            logHistory << "⚠ Количество ошибок в канале: " + num;
+            return; // Важно: выходим после обработки
         }
-        return;
     }
+
+    // Случай 2: Сообщение состоит только из числа (старый формат)
+    if (trimmedMsg == "0" || (trimmedMsg.toInt() > 0 && trimmedMsg.toInt() < 1000000)) {
+        logTextEdit->append("⚠ Количество ошибок в канале: " + trimmedMsg);
+        logHistory << "⚠ Количество ошибок в канале: " + trimmedMsg;
+        return; // Важно: выходим после обработки
+    }
+
+    // Случай 3: Число в начале или конце строки
+    QRegularExpression re2("(^|\\s)(\\d+)($|\\s)");
+    QRegularExpressionMatch match2 = re2.match(trimmedMsg);
+    if (match2.hasMatch() && trimmedMsg.length() < 50) { // только для коротких числовых сообщений
+        QString num = match2.captured(2);
+        if (num.toInt() >= 0 && num.toInt() < 1000000) {
+            logTextEdit->append("⚠ Количество ошибок в канале: " + num);
+            logHistory << "⚠ Количество ошибок в канале: " + num;
+            return; // Важно: выходим после обработки
+        }
+    }
+
+
     if (msg.trimmed() == "0") {
         logTextEdit->append("⚠ Количество ошибок в канале: 0");
         return;
