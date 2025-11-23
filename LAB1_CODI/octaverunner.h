@@ -18,8 +18,11 @@ class OctaveRunner : public QObject {
     Q_OBJECT
 public:
     explicit OctaveRunner(QObject *parent = nullptr);
-
+    void setParams(const OctaveParams_ &p) { this->params = p; }
     void runOctave(OctaveParams_ &params);
+
+public slots:
+    void run();
 
 signals:
     void finished();
@@ -32,4 +35,5 @@ private:
 
     QProcess *proc;
     QString outDir;
+    OctaveParams_ params;
 };

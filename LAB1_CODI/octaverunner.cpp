@@ -4,13 +4,21 @@
 #include <QTextStream>
 #include <QDebug>
 #include "OctaveParams.h"
+#include <QThread>
 
 OctaveRunner::OctaveRunner(QObject *parent)
     : QObject(parent), proc(nullptr)
 {}
 
+
+void OctaveRunner::run()
+{
+    runOctave(params);   // выполняем исходный код
+}
+
 void OctaveRunner::runOctave(OctaveParams_ &params)
 {
+    qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
     outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
     QDir().mkpath(outDir);
     qDebug() << "Results folder:" << outDir;

@@ -27,16 +27,18 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
 
     QFormLayout *form = new QFormLayout;
     pSpin = new QDoubleSpinBox;
-    pSpin->setRange(0.0, 1.0);
-    pSpin->setSingleStep(0.01);
-    pSpin->setValue(0.1);
+    pSpin->setRange(0.001, 1.0);
+    pSpin->setSingleStep(0.001);
+    pSpin->setValue(0.001);
     pSpin->setMaximumWidth(90);
+    pSpin->setDecimals(3); // Показывать 3 знака после запятой
+    pSpin->setStepType(QDoubleSpinBox::AdaptiveDecimalStepType); // Адаптивный шаг
 
-    form->addRow("Вероятность канальной ошибки (p):", pSpin);
+    form->addRow("Вероятность канальной ошибки (pₖ):", pSpin);
 
     QGroupBox *buttonsGroup = new QGroupBox("Реализации");
     buttonsGroup->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
-    buttonsGroup->setMaximumWidth(300);
+    buttonsGroup->setMaximumWidth(510);
     QVBoxLayout *gl = new QVBoxLayout(buttonsGroup);
 
     QGroupBox *buttonsHandGroup = new QGroupBox("Построить вручную");
@@ -44,11 +46,11 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     buttonsHandGroup->setMaximumWidth(300);
     QVBoxLayout *glh = new QVBoxLayout(buttonsHandGroup);
 
-    auto *outEnc = new QPushButton("Выход кодера");
-    auto *inDec = new QPushButton("Вход декодера");
+    auto *outEnc = new QPushButton("Кодовая последовательность выходе кодера");
+    auto *inDec = new QPushButton("Последовательность на входе декодера");
     auto *errVec = new QPushButton("Вектор ошибок");
 
-    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n от \nвероятности канальной ошибки\n на входе декодера");
+    auto *ber_dk = new QPushButton("Зависимость BER\nна входе декодера от\nвероятности ошибки в ДСК");
 
     QPushButton *runButton = new QPushButton("🚀 Запустить моделирование");
     runButton->setStyleSheet(ThemeStyles::OctaveButtonStyle());
@@ -68,11 +70,11 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     glh->addWidget(ber_dk);
 
     connect(outEnc, &QPushButton::clicked, this, [=](){
-        emit logMessage("🔍Показано: Выход кодера");
+        emit logMessage("🔍Показано: Кодовая последовательность выходе кодера");
         plotCsv("p3_encoded"); // CSV должен сохраняться в OctaveRunnerPart2
     });
     connect(inDec, &QPushButton::clicked, this, [=](){
-        emit logMessage("🔍Показано: Вход декодера");
+        emit logMessage("🔍Показано: Последовательность входе декодера");
         plotCsv("p3_received");
     });
     connect(errVec, &QPushButton::clicked, this, [=](){
@@ -87,7 +89,7 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
         // Если окно уже создано — просто показываем его снова
         if (!manualPlotDialog) {
             manualPlotDialog = new ManualPlotDialog(
-                "Введите значения вероятности канальной ошибки (p_k) и количество ошибок на входе декодера:",
+                "Введите значения вероятности канальной ошибки (p<sub>k</sub>) и количество ошибок на входе декодера:",
                 "BER на входе декодера",
                 "Зависимость",
                 this
@@ -160,11 +162,11 @@ void Lab3Panel::plotCsv(const QString &fileName)
     QString windowTitle;
     QString graphTitle;
     if (fileName == "p3_encoded") {
-        windowTitle = "Выход кодера";
-        graphTitle = "Выход кодера";
+        windowTitle = "Кодовая последовательность выходе кодера";
+        graphTitle = "Кодовая последовательность выходе кодера";
     } else if (fileName == "p3_received") {
-        windowTitle = "Вход декодера";
-        graphTitle = "Вход декодера";
+        windowTitle = "Последовательность входе декодера";
+        graphTitle = "Последовательность входе декодера";
     } else if (fileName == "p3_error_vector") {
         windowTitle = "Вектор ошибок";
         graphTitle = "Вектор ошибок";

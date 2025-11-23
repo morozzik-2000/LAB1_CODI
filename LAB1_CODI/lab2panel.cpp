@@ -26,13 +26,13 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
     buttonsGroup->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
 
     QVBoxLayout *gl = new QVBoxLayout(buttonsGroup);
-    auto *inputWord = new QPushButton("Входное слово");
-    auto *decoded = new QPushButton("Декодированное слово");
+    auto *inputWord = new QPushButton("Информационная последовательность");
+    auto *decoded = new QPushButton("Последовательность на выходе декодера");
     auto *codeSeq = new QPushButton("Кодовая последовательность");
-    auto *compare = new QPushButton("Сравнение входной и\nдекодированной последовательностей");
+    auto *compare = new QPushButton("Сравнение информационной и\nдекодированной последовательностей");
     auto *three = new QPushButton("Три на одном");
 
-    for (auto *b : {inputWord, decoded, codeSeq, compare, three})
+    for (auto *b : {inputWord, codeSeq, decoded, compare, three})
         b->setStyleSheet(ThemeStyles::lightButtonStyle());
 
     QPushButton *runButton = new QPushButton("🚀 Запустить моделирование");
@@ -43,8 +43,8 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 
 
     gl->addWidget(inputWord);
-    gl->addWidget(decoded);
     gl->addWidget(codeSeq);
+    gl->addWidget(decoded);
     gl->addWidget(compare);
     gl->addWidget(three);
 
@@ -60,11 +60,11 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 
     // ===== Подключаем кнопки к чтению CSV =====
     connect(inputWord, &QPushButton::clicked, this, [=](){
-        emit logMessage("🔍Показано: Входное слово");
+        emit logMessage("🔍Показано: Информационная последовательность");
         plotCsv("p2_random");
     });
     connect(decoded, &QPushButton::clicked, this, [=](){
-        emit logMessage("🔍Показано: Декодированное слово");
+        emit logMessage("🔍Показано: Последовательность на выходе декодера");
         plotCsv("p2_decoded");
     });
     connect(codeSeq, &QPushButton::clicked, this, [=](){
@@ -114,6 +114,14 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotInput->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
         plotInput->graph(0)->setPen(QPen(Qt::blue));
 
+        // Разрешаем масштабирование и перетаскивание по оси OX
+        plotInput->setInteraction(QCP::iRangeZoom, true);
+        plotInput->setInteraction(QCP::iRangeDrag, true);
+
+        // Настраиваем, чтобы масштабировалась только ось X
+        plotInput->axisRect()->setRangeZoom(Qt::Horizontal);
+        plotInput->axisRect()->setRangeDrag(Qt::Horizontal);
+
         // Вертикальные линии
         plotInput->addGraph();
         plotInput->graph(1)->setData(x_input, input);
@@ -144,6 +152,14 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotEncoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
         plotEncoded->graph(0)->setPen(QPen(Qt::blue));
 
+        // Разрешаем масштабирование и перетаскивание по оси OX
+        plotEncoded->setInteraction(QCP::iRangeZoom, true);
+        plotEncoded->setInteraction(QCP::iRangeDrag, true);
+
+        // Настраиваем, чтобы масштабировалась только ось X
+        plotEncoded->axisRect()->setRangeZoom(Qt::Horizontal);
+        plotEncoded->axisRect()->setRangeDrag(Qt::Horizontal);
+
         plotEncoded->addGraph();
         plotEncoded->graph(1)->setData(x_encoded, encoded);
         plotEncoded->graph(1)->setLineStyle(QCPGraph::lsImpulse);
@@ -172,6 +188,15 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotDecoded->graph(0)->setLineStyle(QCPGraph::lsNone);
         plotDecoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
         plotDecoded->graph(0)->setPen(QPen(Qt::blue));
+
+
+        // Разрешаем масштабирование и перетаскивание по оси OX
+        plotDecoded->setInteraction(QCP::iRangeZoom, true);
+        plotDecoded->setInteraction(QCP::iRangeDrag, true);
+
+        // Настраиваем, чтобы масштабировалась только ось X
+        plotDecoded->axisRect()->setRangeZoom(Qt::Horizontal);
+        plotDecoded->axisRect()->setRangeDrag(Qt::Horizontal);
 
         plotDecoded->addGraph();
         plotDecoded->graph(1)->setData(x_decoded, decoded);
@@ -263,14 +288,14 @@ void Lab2Panel::plotCsv(const QString &fileName)
     QString windowTitle;
     QString graphTitle;
     if (fileName == "p2_random") {
-        windowTitle = "Входное слово";
-        graphTitle = "Входное слово";
+        windowTitle = "Информационная последовательность";
+        graphTitle = "Информационная последовательность";
     } else if (fileName == "p2_encoded") {
         windowTitle = "Кодовая последовательность";
         graphTitle = "Кодовая последовательность";
     } else if (fileName == "p2_decoded") {
-        windowTitle = "Декодированное слово";
-        graphTitle = "Декодированное слово";
+        windowTitle = "Последовательность на выходе декодера";
+        graphTitle = "Последовательность на выходе декодера";
     } else if (fileName == "p2_compare") {
         windowTitle = "Сравнение последовательностей";
         graphTitle = "Сравнение последовательностей";

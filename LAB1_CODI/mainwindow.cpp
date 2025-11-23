@@ -62,6 +62,7 @@ MainWindow::MainWindow(QWidget *parent)
     font.setPointSize(11);
     qApp->setFont(font);
 
+    qDebug() << "[MainWindow] Created in thread:" << QThread::currentThread();
 }
 
 QWidget* MainWindow::createLeftPanel()
@@ -164,89 +165,6 @@ QWidget* MainWindow::createTopArea()
     stack->setCurrentIndex(0);
 
     connect(stack, &QStackedWidget::currentChanged, this, &MainWindow::onStackIndexChanged);
-    // connect(runOctaveButton, &QPushButton::clicked, this, [=]() {
-    //     int current = stack->currentIndex();
-
-    //     // Берём параметры из первой панели (Lab1Panel)
-    //     Lab1Panel *p1 = qobject_cast<Lab1Panel*>(stack->widget(0));
-    //     if (!p1) {
-    //         appendLog("⚠ Не удалось получить параметры из ЛР1!");
-    //         return;
-    //     }
-
-    //     OctaveParams_ baseParams = p1->getParams();
-
-    //     appendLog("▶ Запуск моделирования с параметрами:");
-    //     appendLog(QString("n=%1, k=%2, t=%3, numWords=%4, p=%5")
-    //                   .arg(baseParams.n)
-    //                   .arg(baseParams.k)
-    //                   .arg(baseParams.t)
-    //                   .arg(baseParams.numWords)
-    //                   .arg(baseParams.channelErrorProbability));
-
-    //     // === Определяем, какую часть запускать ===
-    //     if (current == 1) { // --- ЛР2 ---
-    //         appendLog("🔹 Запуск: Модель кодека с неискажающим каналом (ЛР2)");
-
-    //         auto *runner = new OctaveRunner(this);
-    //         connect(runner, &OctaveRunner::logMessage, this, &MainWindow::appendLog);
-    //         connect(runner, &OctaveRunner::finished, this, [=]() { appendLog("✅ Часть 1 завершена."); });
-
-    //         runner->runOctave(baseParams);
-    //     }
-
-    //     else if (current == 2) { // --- ЛР3 ---
-    //         appendLog("🔹 Запуск: Модель двоичного симметричного канала (ЛР3)");
-
-    //         // Вероятность ошибки из Lab3Panel
-    //         Lab3Panel *p3 = qobject_cast<Lab3Panel*>(stack->widget(2));
-    //         OctaveParams_ params;
-    //         params.n = baseParams.n;
-    //         params.k = baseParams.k;
-    //         params.t = baseParams.t;
-    //         params.numWords = baseParams.numWords;
-    //         params.channelErrorProbability = p3->getParams().channelErrorProbability;
-
-    //         appendLog(QString("📊 Параметры ЛР3: n=%1, k=%2, t=%3, numWords=%4, p=%5")
-    //                       .arg(params.n).arg(params.k).arg(params.t)
-    //                       .arg(params.numWords).arg(params.channelErrorProbability));
-
-    //         auto *runner = new OctaveRunnerPart2(this);
-    //         connect(runner, &OctaveRunnerPart2::logMessage, this, &MainWindow::appendLog);
-    //         connect(runner, &OctaveRunnerPart2::finished, this, [=]() { appendLog("✅ Часть 2 завершена."); });
-
-    //         runner->runOctave(params);
-    //     }
-
-
-    //     else if (current == 3) { // --- ЛР4 ---
-    //         appendLog("🔹 Запуск: Кодек с искажающим ДСК (ЛР4)");
-
-    //         Lab4Panel *p4 = qobject_cast<Lab4Panel*>(stack->widget(3));
-    //         OctaveParams_ params;
-    //         params.n = baseParams.n;
-    //         params.k = baseParams.k;
-    //         params.t = baseParams.t;
-    //         params.numWords = baseParams.numWords;
-    //         params.channelErrorProbability = p4->getParams().channelErrorProbability;
-
-    //         appendLog(QString("📊 Параметры ЛР3: n=%1, k=%2, t=%3, numWords=%4, p=%5")
-    //                       .arg(params.n).arg(params.k).arg(params.t)
-    //                       .arg(params.numWords).arg(params.channelErrorProbability));
-
-    //         auto *runner = new OctaveRunnerPart3(this);
-    //         connect(runner, &OctaveRunnerPart3::logMessage, this, &MainWindow::appendLog);
-    //         connect(runner, &OctaveRunnerPart3::finished, this, [=]() { appendLog("✅ Часть 3 завершена."); });
-
-    //         runner->runOctave(params);
-    //     }
-
-    //     else {
-    //         appendLog("ℹ Выберите панель моделирования (ЛР2, ЛР3 или ЛР4) перед запуском.");
-    //     }
-    // });
-
-
     layout->addWidget(stack);
     // layout->addStretch();
     // layout->addWidget(runOctaveButton, 0, Qt::AlignTop);
@@ -291,7 +209,7 @@ void MainWindow::onStackIndexChanged(int idx)
         // showRun = false;
     }
 
-    appendHeader(name);
+    appendLog(name);
 
    /* runOctaveButton->setVisible(showRun);*/ // контролируем видимость здесь
 }
@@ -358,16 +276,28 @@ void MainWindow::startModeling()
 
     if (current == 1) {
         appendLog("▶️ Запуск моделирования с параметрами:");
-        appendLog(QString("𝐧 = %1, 𝐤 = %2, 𝐭 = %3, количество слов = %4")
+        appendLog(QString("𝐧 = %1, 𝐤 = %2, 𝐭 = %3, количество слов (длина реализации) = %4")
                       .arg(baseParams.n)
                       .arg(baseParams.k)
                       .arg(baseParams.t)
                       .arg(baseParams.numWords));
         appendLog("🔹 Пункт №1: Неискажающий канал");
-        auto *runner = new OctaveRunner(this);
+
+        auto *runner = new OctaveRunner();
+        runner->setParams(baseParams);
+
+        QThread *thread = new QThread;
+        runner->moveToThread(thread);
+        connect(thread, &QThread::started,
+                runner, &OctaveRunner::run);
+
         connect(runner, &OctaveRunner::logMessage, this, &MainWindow::appendLog);
-        connect(runner, &OctaveRunner::finished, this, [=]() { appendLog("✅ Моделирование завершено."); });
-        runner->runOctave(baseParams);
+        connect(runner, &OctaveRunner::finished, this, [=]() { appendLog("✅ Моделирование завершено."); thread->quit();});
+        // runner->runOctave(baseParams);
+        connect(thread, &QThread::finished, runner, &QObject::deleteLater);
+        connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+        thread->start();
     }
     else if (current == 2) {
         appendLog("🔹 Пункт №2: Двоичный симметричный канал");
@@ -383,10 +313,20 @@ void MainWindow::startModeling()
                       .arg(baseParams.numWords)
                       .arg(params.channelErrorProbability));
 
-        auto *runner = new OctaveRunnerPart2(this);
+        auto *runner = new OctaveRunnerPart2();
+        runner->setParams(params);
+        QThread *thread = new QThread;
+        runner->moveToThread(thread);
+        connect(thread, &QThread::started,
+                runner, &OctaveRunnerPart2::run);
+
         connect(runner, &OctaveRunnerPart2::logMessage, this, &MainWindow::appendLog);
-        connect(runner, &OctaveRunnerPart2::finished, this, [=]() { appendLog("✅ Моделирование завершено."); });
-        runner->runOctave(params);
+        connect(runner, &OctaveRunnerPart2::finished, this, [=]() { appendLog("✅ Моделирование завершено."); thread->quit();});
+        // runner->runOctave(params);
+        connect(thread, &QThread::finished, runner, &QObject::deleteLater);
+        connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+        thread->start();
     }
     else if (current == 3) {
         appendLog("🔹 Пункт №3: Кодек с искажающим ДСК");
@@ -402,10 +342,22 @@ void MainWindow::startModeling()
                       .arg(baseParams.numWords)
                       .arg(params.channelErrorProbability));
 
-        auto *runner = new OctaveRunnerPart3(this);
+        auto *runner = new OctaveRunnerPart3();
+
+        runner->setParams(params);
+
+        QThread *thread = new QThread;
+        runner->moveToThread(thread);
+        connect(thread, &QThread::started,
+                runner, &OctaveRunnerPart3::run);
+
         connect(runner, &OctaveRunnerPart3::logMessage, this, &MainWindow::appendLog);
-        connect(runner, &OctaveRunnerPart3::finished, this, [=]() { appendLog("✅ Моделирование завершено."); });
-        runner->runOctave(params);
+        connect(runner, &OctaveRunnerPart3::finished, this, [=]() { appendLog("✅ Моделирование завершено."); thread->quit();});
+        // runner->runOctave(params);
+        connect(thread, &QThread::finished, runner, &QObject::deleteLater);
+        connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+
+        thread->start();
     }
     else {
         appendLog("ℹ Выберите панель моделирования (ЛР2, ЛР3, ЛР4).");

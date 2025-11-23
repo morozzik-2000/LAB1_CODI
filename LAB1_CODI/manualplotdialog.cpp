@@ -35,7 +35,7 @@ void ManualPlotDialog::setupUI()
 
     // Таблица для ввода точек
     m_table = new QTableWidget(0, 2, this);
-    m_table->setHorizontalHeaderLabels(QStringList() << "p_k" << "Количество ошибок");
+    m_table->setHorizontalHeaderLabels(QStringList() << "pₖ" << "Количество ошибок");
     m_table->horizontalHeader()->setStretchLastSection(true);
     layout->addWidget(m_table);
 
@@ -54,8 +54,12 @@ void ManualPlotDialog::setupUI()
     layout->addLayout(tableButtonsLayout);
 
     // Кнопки диалога
-    auto *buttonBox = new QDialogButtonBox(
-        QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    // auto *buttonBox = new QDialogButtonBox(
+    //     QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+    // auto *plotButton = new QPushButton("Построить график");
+    // buttonBox->addButton(plotButton, QDialogButtonBox::ActionRole);
+    auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
 
     auto *plotButton = new QPushButton("Построить график");
     buttonBox->addButton(plotButton, QDialogButtonBox::ActionRole);
@@ -68,7 +72,7 @@ void ManualPlotDialog::setupUI()
     connect(clearButton, &QPushButton::clicked, this, &ManualPlotDialog::clearPoints);
     connect(plotButton, &QPushButton::clicked, this, &ManualPlotDialog::plotGraph);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-    connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
 
     // // Добавляем начальные точки из ваших данных
     // QVector<double> initialPk = {0.0010, 0.0015, 0.0020, 0.0025, 0.0030, 0.0035, 0.0040, 0.0045, 0.0050,
@@ -142,13 +146,23 @@ void ManualPlotDialog::removePoint()
 
 void ManualPlotDialog::clearPoints()
 {
-    if (QMessageBox::question(this, "Очистка",
-        "Вы уверены, что хотите удалить все точки?") == QMessageBox::Yes) {
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Очистка");
+    msgBox.setText("Вы уверены, что хотите удалить все точки?");
+    msgBox.setIcon(QMessageBox::Question);
+
+    QPushButton *yesButton = msgBox.addButton("Да", QMessageBox::YesRole);
+    QPushButton *noButton  = msgBox.addButton("Нет", QMessageBox::NoRole);
+
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == yesButton) {
         m_pkValues.clear();
         m_errorValues.clear();
         updateTable();
     }
 }
+
 
 void ManualPlotDialog::updateTable()
 {
@@ -233,7 +247,7 @@ void ManualPlotDialog::plotGraph()
     customPlot->graph(0)->setPen(QPen(QColor(0, 0, 255), 2));
 
     // Настройка осей
-    customPlot->xAxis->setLabel("Вероятность канальной ошибки p_k");
+    customPlot->xAxis->setLabel("Вероятность канальной ошибки pₖ");
     customPlot->yAxis->setLabel(m_yAxisLabel);
     customPlot->xAxis->setRange(0, *std::max_element(sortedPk.constBegin(), sortedPk.constEnd()) * 1.1);
     customPlot->yAxis->setRange(0, *std::max_element(sortedBer.constBegin(), sortedBer.constEnd()) * 1.1);

@@ -18,7 +18,10 @@ class OctaveRunnerPart3 : public QObject
 public:
     explicit OctaveRunnerPart3(QObject *parent = nullptr);
     void runOctave(OctaveParams_ &params);
+    void setParams(const OctaveParams_ &p) { this->params = p; }
 
+public slots:
+    void run();
 signals:
     void finished();
     void errorOccurred(const QString &msg);
@@ -28,4 +31,6 @@ private:
     void writeOctaveScript(OctaveParams_ &p, const QString &path, const QString &outDir);
     QProcess *proc;
     QString outDir;
+
+    OctaveParams_ params;
 };

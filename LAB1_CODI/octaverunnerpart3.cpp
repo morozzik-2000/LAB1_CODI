@@ -3,12 +3,20 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QThread>
 
 OctaveRunnerPart3::OctaveRunnerPart3(QObject *parent)
     : QObject(parent), proc(nullptr) {}
 
+
+void OctaveRunnerPart3::run()
+{
+    runOctave(params);   // выполняем исходный код
+}
+
 void OctaveRunnerPart3::runOctave(OctaveParams_ &params)
 {
+    qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
     outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
     QDir().mkpath(outDir);
     qDebug() << "Results folder:" << outDir;

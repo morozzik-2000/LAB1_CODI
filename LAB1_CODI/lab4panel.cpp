@@ -26,12 +26,14 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
 
     QFormLayout *form = new QFormLayout;
     pSpin = new QDoubleSpinBox;
-    pSpin->setRange(0.0, 1.0);
-    pSpin->setSingleStep(0.01);
-    pSpin->setValue(0.1);
+    pSpin->setRange(0.001, 1.0);
+    pSpin->setSingleStep(0.001);
+    pSpin->setValue(0.001);
     pSpin->setMaximumWidth(90);
+    pSpin->setDecimals(3); // Показывать 3 знака после запятой
+    pSpin->setStepType(QDoubleSpinBox::AdaptiveDecimalStepType); // Адаптивный шаг
 
-    form->addRow("Вероятность канальной ошибки (p):", pSpin);
+    form->addRow("Вероятность канальной ошибки (pₖ):", pSpin);
 
     QGroupBox *buttonsGroup = new QGroupBox("Реализации");
     buttonsGroup->setStyleSheet(ThemeStyles::lightGroupBoxStyle());
@@ -46,7 +48,7 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
     auto *infoSeq = new QPushButton("Информационная последовательность");
     auto *decOut = new QPushButton("Последовательность на выходе декодера");
     auto *cmp = new QPushButton("Сравнение информационной и\nдекодированной последовательности");
-    auto *ber_dk = new QPushButton("Зависимость битовой ошибки\n от \nвероятности канальной ошибки\n на выходе декодера");
+    auto *ber_dk = new QPushButton("Зависимость BER\nна выходе декодера от\nвероятности ошибки в ДСК");
 
     for (auto *b : {infoSeq, decOut, cmp, ber_dk}) b->setStyleSheet(ThemeStyles::lightButtonStyle());
 
@@ -87,7 +89,7 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
         // Если окно уже создано — просто показываем его снова
         if (!manualPlotDialog) {
             manualPlotDialog = new ManualPlotDialog(
-                "Введите значения вероятности канальной ошибки (p_k) и количество ошибок на выходе декодере:",
+                "Введите значения вероятности канальной ошибки (p<sub>k</sub>) и количество ошибок на выходе декодера:",
                 "BER на выходе декодера",
                 "Зависимость",
                 this

@@ -7,9 +7,14 @@
 OctaveRunnerPart2::OctaveRunnerPart2(QObject *parent)
     : QObject(parent), proc(nullptr) {}
 
+void OctaveRunnerPart2::run()
+{
+    runOctave(params);   // выполняем исходный код
+}
+
 void OctaveRunnerPart2::runOctave(OctaveParams_ &params)
 {
-
+    qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
     outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
     QDir().mkpath(outDir);
     qDebug() << "Results folder:" << outDir;
