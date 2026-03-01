@@ -30,7 +30,6 @@ public:
 signals:
     void logMessage(const QString &message);
     void runRequestedLab3();
-    void plotReady(const PlotData &data);
 
 private slots:
     void savePlot(QCustomPlot *plot, const QString &format);

@@ -276,12 +276,7 @@ void ManualPlotDialog::plotGraph()
         }
     }
 
-    PlotData data;
-    data.pk = sortedPk;
-    data.ber = sortedBer;
-    data.name = m_yAxisLabel;
 
-    emit plotReady(data);
 
     // Настройка графика
     customPlot->addGraph();

@@ -13,6 +13,7 @@
 #include "Lab3Panel.h"
 #include "Lab4Panel.h"
 #include "PlotDataForCompare.h"
+#include "comparisonwindow.h"
 
 class MainWindow : public QWidget {
     Q_OBJECT
@@ -46,16 +47,17 @@ private:
 
     QPushButton *btnLab5 = nullptr;
 
-    PlotData inputData;
-    PlotData outputData;
+    PlotData plot1;
+    PlotData plot2;
 
-    bool hasInput=false;
-    bool hasOutput=false;
+    bool hasPlot1=false;
+    bool hasPlot2=false;
+    ComparisonWindow* comparisonWindow=nullptr;
 
 
 private slots:
-    void onPlotReady(const PlotData &data);
-    void showComparisonPlot();
+
+    void openComparisonWindow();
 
 private slots:
     void onLab1Clicked();

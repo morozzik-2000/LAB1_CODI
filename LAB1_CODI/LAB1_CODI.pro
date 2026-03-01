@@ -12,6 +12,7 @@ CONFIG += c++17
 
 SOURCES += \
     codecdiagramwidget.cpp \
+    comparisonwindow.cpp \
     lab1panel.cpp \
     lab2panel.cpp \
     lab3panel.cpp \
@@ -19,9 +20,11 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     manualplotdialog.cpp \
+    manualplotdialogcompare.cpp \
     octaveparamspart2.cpp \
     octaverunner.cpp \
     octaverunnerpart3.cpp \
+    plotwindowcompare.cpp \
     qcustomplot.cpp \
     themestyles.cpp
 
@@ -30,15 +33,18 @@ HEADERS += \
     OctaveParams.h \
     PlotDataForCompare.h \
     codecdiagramwidget.h \
+    comparisonwindow.h \
     lab1panel.h \
     lab2panel.h \
     lab3panel.h \
     lab4panel.h \
     mainwindow.h \
     manualplotdialog.h \
+    manualplotdialogcompare.h \
     octaveparamspart2.h \
     octaverunner.h \
     octaverunnerpart3.h \
+    plotwindowcompare.h \
     qcustomplot.h \
     themestyles.h
 

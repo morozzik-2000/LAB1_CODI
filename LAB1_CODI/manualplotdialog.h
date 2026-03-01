@@ -31,8 +31,7 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-signals:
-    void plotReady(const PlotData &data);
+
 
 private slots:
     void addPoint();

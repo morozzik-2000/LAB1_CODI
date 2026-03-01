@@ -101,7 +101,7 @@ QWidget* MainWindow::createLeftPanel()
     secondLayout->addWidget(btnLab5);
 
     connect(btnLab5, &QPushButton::clicked,
-            this, &MainWindow::showComparisonPlot);
+            this, &MainWindow::openComparisonWindow);
 
     // tools
     QGroupBox *thirdGroupBox = new QGroupBox("Инструменты");
@@ -164,11 +164,7 @@ QWidget* MainWindow::createTopArea()
     connect(p3, &Lab3Panel::runRequestedLab3, this, &MainWindow::startModeling);
     connect(p4, &Lab4Panel::runRequestedLab4, this, &MainWindow::startModeling);
 
-    connect(p3, &Lab3Panel::plotReady,
-            this, &MainWindow::onPlotReady);
 
-    connect(p4, &Lab4Panel::plotReady,
-            this, &MainWindow::onPlotReady);
 
     stack->addWidget(p1);
     stack->addWidget(p2);
@@ -446,59 +442,12 @@ void MainWindow::saveLogToFile()
     appendLog("💾 Лог сохранён в файл: " + filename);
 }
 
-void MainWindow::onPlotReady(const PlotData &data)
+
+void MainWindow::openComparisonWindow()
 {
-    if (data.name.contains("вход", Qt::CaseInsensitive))
-    {
-        inputData = data;
-        hasInput = true;
-        appendLog("✔ Сохранён график входа декодера");
-    }
-    else
-    {
-        outputData = data;
-        hasOutput = true;
-        appendLog("✔ Сохранён график выхода декодера");
-    }
-}
+    if(!comparisonWindow)
+        comparisonWindow=new ComparisonWindow(this);
 
-void MainWindow::showComparisonPlot()
-{
-    if (!hasInput || !hasOutput)
-    {
-        appendLog("⚠ Нужно построить оба графика");
-        return;
-    }
-
-    QDialog *dialog = new QDialog(this);
-    dialog->resize(1000,700);
-    dialog->setWindowTitle("Сравнение BER");
-
-    QVBoxLayout *layout = new QVBoxLayout(dialog);
-
-    QCustomPlot *plot = new QCustomPlot;
-    layout->addWidget(plot);
-
-    plot->addGraph();
-    plot->graph(0)->setData(inputData.pk,
-                            inputData.ber);
-    plot->graph(0)->setPen(QPen(Qt::blue,2));
-    plot->graph(0)->setName("Вход декодера");
-
-    plot->addGraph();
-    plot->graph(1)->setData(outputData.pk,
-                            outputData.ber);
-    plot->graph(1)->setPen(QPen(Qt::red,2));
-    plot->graph(1)->setName("Выход декодера");
-
-    plot->legend->setVisible(true);
-
-    plot->xAxis->setLabel("p_k");
-    plot->yAxis->setLabel("BER");
-
-    plot->rescaleAxes();
-    plot->setInteractions(QCP::iRangeDrag |
-                          QCP::iRangeZoom);
-
-    dialog->exec();
+    comparisonWindow->show();
+    comparisonWindow->raise();
 }

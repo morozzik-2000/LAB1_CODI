@@ -109,11 +109,6 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
             manualPlotDialog->setWindowState(manualPlotDialog->windowState() & ~Qt::WindowMinimized);
         }
 
-        connect(manualPlotDialog,
-                &ManualPlotDialog::plotReady,
-                this,
-                &Lab4Panel::plotReady,
-                Qt::UniqueConnection);   // важно
     });
 
 
