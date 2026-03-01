@@ -12,6 +12,118 @@ void OctaveRunnerPart2::run()
     runOctave(params);   // выполняем исходный код
 }
 
+QString OctaveRunnerPart2::findOctaveExecutable()
+{
+    QStringList possiblePaths;
+
+    // Стандартные пути установки на Windows
+    possiblePaths << "C:/Program Files/GNU Octave/Octave-*/mingw64/bin/octave.exe";
+    possiblePaths << "C:/Program Files (x86)/GNU Octave/Octave-*/mingw64/bin/octave.exe";
+    possiblePaths << "C:/Users/*/AppData/Local/Programs/GNU Octave/Octave-*/mingw64/bin/octave.exe";
+    possiblePaths << "E:/Octave/Octave-*/mingw64/bin/octave.exe";
+
+    // Поиск через where в командной строке
+    QProcess which;
+    which.start("where octave");
+    if (which.waitForFinished(3000)) {
+        QString output = which.readAllStandardOutput().trimmed();
+        if (!output.isEmpty()) {
+            QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+            for (const QString &line : lines) {
+                QString path = line.trimmed();
+                if (QFile::exists(path)) {
+                    qDebug() << "Found Octave via 'where':" << path;
+                    return QDir::toNativeSeparators(path);
+                }
+            }
+        }
+    }
+
+    // Поиск в PATH
+    QString pathEnv = qgetenv("PATH");
+    QStringList paths = pathEnv.split(";", Qt::SkipEmptyParts);
+    for (const QString &path : paths) {
+        QDir dir(path);
+        QString exePath = dir.filePath("octave.exe");
+        if (QFile::exists(exePath)) {
+            qDebug() << "Found Octave in PATH:" << exePath;
+            return QDir::toNativeSeparators(exePath);
+        }
+    }
+
+    // Рекурсивный поиск по маске
+    for (const QString &pattern : possiblePaths) {
+        // Разбираем путь на части
+        QString pathPattern = QDir::fromNativeSeparators(pattern);
+        QStringList parts = pathPattern.split('/');
+
+        // Начинаем поиск с корневого каталога
+        QString currentPath = parts.first();
+        if (currentPath.isEmpty()) currentPath = "/";
+
+        // Рекурсивно ищем файл
+        QString foundPath = findFileRecursive(currentPath, parts.mid(1));
+        if (!foundPath.isEmpty()) {
+            qDebug() << "Found Octave via pattern search:" << foundPath;
+            return QDir::toNativeSeparators(foundPath);
+        }
+    }
+
+// Поиск во всех дисках Windows
+#ifdef Q_OS_WIN
+    QFileInfoList drives = QDir::drives();
+    for (const QFileInfo &drive : drives) {
+        QString searchPath = drive.absolutePath() + "GNU Octave";
+        QString foundPath = findFileRecursive(searchPath,
+                                              {"Octave-*", "mingw64", "bin", "octave.exe"});
+        if (!foundPath.isEmpty()) {
+            qDebug() << "Found Octave on drive:" << foundPath;
+            return QDir::toNativeSeparators(foundPath);
+        }
+    }
+#endif
+
+    qDebug() << "Octave executable not found";
+    return QString();
+}
+
+// Вспомогательная рекурсивная функция для поиска по маске
+QString OctaveRunnerPart2::findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth)
+{
+    if (depth >= patternParts.size()) return QString();
+
+    QDir dir(startPath);
+    QString currentPattern = patternParts[depth];
+
+    if (depth == patternParts.size() - 1) {
+        // Последний элемент - ищем файл
+        if (dir.exists(currentPattern)) {
+            return dir.filePath(currentPattern);
+        }
+        return QString();
+    }
+
+    // Ищем подкаталоги по маске
+    QStringList filters;
+    filters << currentPattern;
+    dir.setFilter(QDir::Dirs | QDir::NoDotAndDotDot);
+    dir.setNameFilters(filters);
+
+    QFileInfoList subDirs = dir.entryInfoList();
+    for (const QFileInfo &subDir : subDirs) {
+        QString result = findFileRecursive(
+            subDir.absoluteFilePath(),
+            patternParts,
+            depth + 1
+            );
+        if (!result.isEmpty()) {
+            return result;
+        }
+    }
+
+    return QString();
+}
+
 void OctaveRunnerPart2::runOctave(OctaveParams_ &params)
 {
     qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
@@ -19,11 +131,17 @@ void OctaveRunnerPart2::runOctave(OctaveParams_ &params)
     QDir().mkpath(outDir);
     qDebug() << "Results folder:" << outDir;
 
-    QString scriptPath = QDir::toNativeSeparators(QDir::currentPath() + "/bch_lab_part2.m");
+    QString scriptPath = QDir::toNativeSeparators(QDir::currentPath() + "/bch_lab_auto.m");
     writeOctaveScript(params, scriptPath, outDir);
 
-    // QString octaveProgram = QDir::toNativeSeparators("E:/Octave/Octave-10.2.0/mingw64/bin/octave.exe");
-    QString octaveProgram = QDir::toNativeSeparators("C:/Users/Student/AppData/Local/Programs/GNU Octave/Octave-10.2.0/mingw64/bin/octave.exe");
+    QString octaveProgram = findOctaveExecutable();
+
+    if (octaveProgram.isEmpty()) {
+        emit errorOccurred("❌ Octave executable not found. Please install GNU Octave or specify path manually.");
+        return;
+    }
+
+    qDebug() << "Using Octave from:" << octaveProgram;
 
     QStringList args;
     args << "--no-gui" << "--silent" << scriptPath;

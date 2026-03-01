@@ -12,6 +12,7 @@
 #include <QMenu>
 #include <QFileDialog>
 
+
 Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 {
     auto *layout = new QVBoxLayout(this);
@@ -91,16 +92,25 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         // Создаем основное окно с вертикальным layout
         QWidget *mainWindow = new QWidget;
         mainWindow->setWindowTitle("Три последовательности");
-        mainWindow->resize(800, 1200);
+
+        // Устанавливаем окно на весь экран
+        mainWindow->showMaximized();
 
         QVBoxLayout *mainLayout = new QVBoxLayout(mainWindow);
-        mainLayout->setSpacing(10);
+        mainLayout->setSpacing(5); // Уменьшаем расстояние между элементами
+        mainLayout->setContentsMargins(5, 5, 5, 5); // Уменьшаем отступы
 
         // График 1: Входное слово
         QCustomPlot *plotInput = new QCustomPlot;
 
+        // Сохраняем исходные диапазоны для сброса масштаба
+        double xMinInput = 0;
+        double xMaxInput = input.size() + 1;
+        double yMinInput = *std::min_element(input.begin(), input.end()) - 1;
+        double yMaxInput = *std::max_element(input.begin(), input.end()) + 1;
+
         // Добавляем заголовок на график
-        QCPTextElement *titleInput = new QCPTextElement(plotInput, "Входное слово", QFont("sans", 12, QFont::Bold));
+        QCPTextElement *titleInput = new QCPTextElement(plotInput, "Входное слово", QFont("sans", 10, QFont::Bold)); // Уменьшаем шрифт
         plotInput->plotLayout()->insertRow(0);
         plotInput->plotLayout()->addElement(0, 0, titleInput);
 
@@ -111,7 +121,7 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotInput->addGraph();
         plotInput->graph(0)->setData(x_input, input);
         plotInput->graph(0)->setLineStyle(QCPGraph::lsNone);
-        plotInput->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+        plotInput->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4)); // Уменьшаем размер точек
         plotInput->graph(0)->setPen(QPen(Qt::blue));
 
         // Разрешаем масштабирование и перетаскивание по оси OX
@@ -130,16 +140,28 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 
         plotInput->xAxis->setLabel("Индекс");
         plotInput->yAxis->setLabel("Значение");
-        plotInput->xAxis->setRange(0, input.size() + 1);
-        double minInput = *std::min_element(input.begin(), input.end());
-        double maxInput = *std::max_element(input.begin(), input.end());
-        plotInput->yAxis->setRange(minInput - 1, maxInput + 1);
+        plotInput->xAxis->setRange(xMinInput, xMaxInput);
+        plotInput->yAxis->setRange(yMinInput, yMaxInput);
+
+        // Добавляем обработчик двойного клика для сброса масштаба
+        connect(plotInput, &QCustomPlot::mouseDoubleClick, [=](QMouseEvent *event) {
+            Q_UNUSED(event);
+            plotInput->xAxis->setRange(xMinInput, xMaxInput);
+            plotInput->yAxis->setRange(yMinInput, yMaxInput);
+            plotInput->replot();
+        });
 
         // График 2: Кодовая последовательность
         QCustomPlot *plotEncoded = new QCustomPlot;
 
+        // Сохраняем исходные диапазоны для сброса масштаба
+        double xMinEncoded = 0;
+        double xMaxEncoded = encoded.size() + 1;
+        double yMinEncoded = *std::min_element(encoded.begin(), encoded.end()) - 1;
+        double yMaxEncoded = *std::max_element(encoded.begin(), encoded.end()) + 1;
+
         // Добавляем заголовок на график
-        QCPTextElement *titleEncoded = new QCPTextElement(plotEncoded, "Кодовая последовательность", QFont("sans", 12, QFont::Bold));
+        QCPTextElement *titleEncoded = new QCPTextElement(plotEncoded, "Кодовая последовательность", QFont("sans", 10, QFont::Bold));
         plotEncoded->plotLayout()->insertRow(0);
         plotEncoded->plotLayout()->addElement(0, 0, titleEncoded);
 
@@ -149,7 +171,7 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotEncoded->addGraph();
         plotEncoded->graph(0)->setData(x_encoded, encoded);
         plotEncoded->graph(0)->setLineStyle(QCPGraph::lsNone);
-        plotEncoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+        plotEncoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
         plotEncoded->graph(0)->setPen(QPen(Qt::blue));
 
         // Разрешаем масштабирование и перетаскивание по оси OX
@@ -167,16 +189,28 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 
         plotEncoded->xAxis->setLabel("Индекс");
         plotEncoded->yAxis->setLabel("Значение");
-        plotEncoded->xAxis->setRange(0, encoded.size() + 1);
-        double minEncoded = *std::min_element(encoded.begin(), encoded.end());
-        double maxEncoded = *std::max_element(encoded.begin(), encoded.end());
-        plotEncoded->yAxis->setRange(minEncoded - 1, maxEncoded + 1);
+        plotEncoded->xAxis->setRange(xMinEncoded, xMaxEncoded);
+        plotEncoded->yAxis->setRange(yMinEncoded, yMaxEncoded);
+
+        // Добавляем обработчик двойного клика для сброса масштаба
+        connect(plotEncoded, &QCustomPlot::mouseDoubleClick, [=](QMouseEvent *event) {
+            Q_UNUSED(event);
+            plotEncoded->xAxis->setRange(xMinEncoded, xMaxEncoded);
+            plotEncoded->yAxis->setRange(yMinEncoded, yMaxEncoded);
+            plotEncoded->replot();
+        });
 
         // График 3: Декодированное слово
         QCustomPlot *plotDecoded = new QCustomPlot;
 
+        // Сохраняем исходные диапазоны для сброса масштаба
+        double xMinDecoded = 0;
+        double xMaxDecoded = decoded.size() + 1;
+        double yMinDecoded = *std::min_element(decoded.begin(), decoded.end()) - 1;
+        double yMaxDecoded = *std::max_element(decoded.begin(), decoded.end()) + 1;
+
         // Добавляем заголовок на график
-        QCPTextElement *titleDecoded = new QCPTextElement(plotDecoded, "Декодированное слово", QFont("sans", 12, QFont::Bold));
+        QCPTextElement *titleDecoded = new QCPTextElement(plotDecoded, "Декодированное слово", QFont("sans", 10, QFont::Bold));
         plotDecoded->plotLayout()->insertRow(0);
         plotDecoded->plotLayout()->addElement(0, 0, titleDecoded);
 
@@ -186,9 +220,8 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
         plotDecoded->addGraph();
         plotDecoded->graph(0)->setData(x_decoded, decoded);
         plotDecoded->graph(0)->setLineStyle(QCPGraph::lsNone);
-        plotDecoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+        plotDecoded->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
         plotDecoded->graph(0)->setPen(QPen(Qt::blue));
-
 
         // Разрешаем масштабирование и перетаскивание по оси OX
         plotDecoded->setInteraction(QCP::iRangeZoom, true);
@@ -205,33 +238,81 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
 
         plotDecoded->xAxis->setLabel("Индекс");
         plotDecoded->yAxis->setLabel("Значение");
-        plotDecoded->xAxis->setRange(0, decoded.size() + 1);
-        double minDecoded = *std::min_element(decoded.begin(), decoded.end());
-        double maxDecoded = *std::max_element(decoded.begin(), decoded.end());
-        plotDecoded->yAxis->setRange(minDecoded - 1, maxDecoded + 1);
+        plotDecoded->xAxis->setRange(xMinDecoded, xMaxDecoded);
+        plotDecoded->yAxis->setRange(yMinDecoded, yMaxDecoded);
+
+        // Добавляем обработчик двойного клика для сброса масштаба
+        connect(plotDecoded, &QCustomPlot::mouseDoubleClick, [=](QMouseEvent *event) {
+            Q_UNUSED(event);
+            plotDecoded->xAxis->setRange(xMinDecoded, xMaxDecoded);
+            plotDecoded->yAxis->setRange(yMinDecoded, yMaxDecoded);
+            plotDecoded->replot();
+        });
 
         // Добавляем все графики в основной layout
-        mainLayout->addWidget(plotInput);
-        mainLayout->addWidget(plotEncoded);
-        mainLayout->addWidget(plotDecoded);
+        mainLayout->addWidget(plotInput, 1); // Растяжение 1
+        mainLayout->addWidget(plotEncoded, 1); // Растяжение 1
+        mainLayout->addWidget(plotDecoded, 1); // Растяжение 1
 
-        // Создаем кнопку сохранения для всего окна
+        // Создаем компактный layout для кнопок внизу
+        QHBoxLayout *bottomButtonsLayout = new QHBoxLayout();
+        bottomButtonsLayout->setContentsMargins(0, 2, 0, 2); // Минимальные отступы
+        bottomButtonsLayout->setSpacing(10);
+
+        // Создаем информационную кнопку с восклицательным знаком
+        QPushButton *infoButton = new QPushButton("ⓘ");
+        infoButton->setFixedSize(28, 28);
+        infoButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #0078D7;"
+            "   color: white;"
+            "   border: none;"
+            "   border-radius: 14px;"
+            "   font-size: 16px;"
+            "   font-weight: bold;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #005A9E;"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: #004080;"
+            "}"
+            );
+
+        // Создаем кнопку сохранения
         QPushButton *saveButton = new QPushButton("Сохранить");
-        saveButton->setFixedSize(150, 30);
-        saveButton->setStyleSheet(ThemeStyles::lightButtonStyle());
+        saveButton->setFixedSize(100, 28);
+        saveButton->setStyleSheet(
+            "QPushButton {"
+            "   background-color: #28a745;"
+            "   color: white;"
+            "   border: none;"
+            "   border-radius: 4px;"
+            "   font-size: 12px;"
+            "   font-weight: bold;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #218838;"
+            "}"
+            "QPushButton:pressed {"
+            "   background-color: #1e7e34;"
+            "}"
+            );
 
-        QHBoxLayout *buttonLayout = new QHBoxLayout();
-        buttonLayout->addStretch();
-        buttonLayout->addWidget(saveButton);
+        // Добавляем растяжение слева, чтобы кнопки были справа
+        bottomButtonsLayout->addStretch();
+        bottomButtonsLayout->addWidget(infoButton);
+        bottomButtonsLayout->addWidget(saveButton);
 
+        // Создаем меню для сохранения
         QMenu *saveMenu = new QMenu(saveButton);
-        saveMenu->addAction("Сохранить как PNG", [=]() {
+        saveMenu->addAction("PNG", [=]() {
             saveThreePlots(plotInput, plotEncoded, plotDecoded, "PNG");
         });
-        saveMenu->addAction("Сохранить как JPEG", [=]() {
+        saveMenu->addAction("JPEG", [=]() {
             saveThreePlots(plotInput, plotEncoded, plotDecoded, "JPEG");
         });
-        saveMenu->addAction("Сохранить как PDF", [=]() {
+        saveMenu->addAction("PDF", [=]() {
             saveThreePlots(plotInput, plotEncoded, plotDecoded, "PDF");
         });
 
@@ -239,7 +320,38 @@ Lab2Panel::Lab2Panel(QWidget *parent) : QWidget(parent)
             saveMenu->exec(saveButton->mapToGlobal(QPoint(0, saveButton->height())));
         });
 
-        mainLayout->addLayout(buttonLayout);
+        // Создаем информационное сообщение
+        QMessageBox *infoMessage = new QMessageBox(mainWindow);
+        infoMessage->setWindowTitle("Управление графиками");
+        infoMessage->setIcon(QMessageBox::Information);
+        infoMessage->setText(
+            "<h3>Управление графиком</h3>"
+            "<p><b>Масштабирование:</b></p>"
+            "<ul>"
+            "<li>Колесико мыши - приближение/отдаление по оси X</li>"
+            "<li>Можно масштабировать только по горизонтали</li>"
+            "</ul>"
+            "<p><b>Перемещение:</b></p>"
+            "<ul>"
+            "<li>Зажмите левую кнопку мыши и перетаскивайте график</li>"
+            "<li>Перемещение возможно только по горизонтали</li>"
+            "</ul>"
+            "<p><b>Сброс масштаба:</b></p>"
+            "<ul>"
+            "<li>Двойной клик по графику</li>"
+            "</ul>"
+            "<p><b>Дополнительно:</b></p>"
+            "<ul>"
+            "<li>Кнопка 'Сохранить' - экспорт графика в PNG, JPEG или PDF</li>"
+            "</ul>"
+            );
+
+        connect(infoButton, &QPushButton::clicked, [=]() {
+            infoMessage->show();
+        });
+
+        // Добавляем компактный layout с кнопками
+        mainLayout->addLayout(bottomButtonsLayout);
 
         // Перерисовываем все графики
         plotInput->replot();
@@ -316,6 +428,12 @@ void Lab2Panel::plotCsv(const QString &fileName)
         x[i] = i + 1;
     }
 
+    // Сохраняем исходные диапазоны для сброса масштаба
+    double xMin = 0;
+    double xMax = data.size() + 1;
+    double yMin = *std::min_element(data.begin(), data.end()) - 1;
+    double yMax = *std::max_element(data.begin(), data.end()) + 1;
+
     // Добавляем график точек
     plot->addGraph();
     plot->graph(0)->setData(x, data);
@@ -332,10 +450,8 @@ void Lab2Panel::plotCsv(const QString &fileName)
     // Настраиваем оси
     plot->xAxis->setLabel("Индекс");
     plot->yAxis->setLabel("Значение");
-    plot->xAxis->setRange(0, data.size() + 1);
-    double min = *std::min_element(data.begin(), data.end());
-    double max = *std::max_element(data.begin(), data.end());
-    plot->yAxis->setRange(min - 1, max + 1);
+    plot->xAxis->setRange(xMin, xMax);
+    plot->yAxis->setRange(yMin, yMax);
 
     // Разрешаем масштабирование и перетаскивание по оси OX
     plot->setInteraction(QCP::iRangeZoom, true);
@@ -345,16 +461,52 @@ void Lab2Panel::plotCsv(const QString &fileName)
     plot->axisRect()->setRangeZoom(Qt::Horizontal);
     plot->axisRect()->setRangeDrag(Qt::Horizontal);
 
+    // Добавляем обработчик двойного клика для сброса масштаба
+    connect(plot, &QCustomPlot::mouseDoubleClick, [=](QMouseEvent *event) {
+        Q_UNUSED(event);
+        // Сбрасываем масштаб до исходного
+        plot->xAxis->setRange(xMin, xMax);
+        plot->yAxis->setRange(yMin, yMax);
+        plot->replot();
 
-    // Создаем кнопку сохранения в правом нижнем углу
+        // Опционально: показываем сообщение о сбросе масштаба
+        qDebug() << "Масштаб сброшен";
+    });
+
+    // Создаем горизонтальный layout для кнопок
+    QHBoxLayout *buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addStretch(); // Растяжение слева, чтобы кнопки были справа
+
+    // Создаем информационную кнопку с восклицательным знаком
+    QPushButton *infoButton = new QPushButton("ⓘ");
+    infoButton->setFixedSize(30, 30);
+    infoButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #0078D7;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 15px;"
+        "   font-size: 20px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #005A9E;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #004080;"
+        "}"
+        );
+
+    // Создаем кнопку сохранения
     QPushButton *saveButton = new QPushButton("Сохранить");
     saveButton->setFixedSize(100, 30);
     saveButton->setStyleSheet(ThemeStyles::lightButtonStyle());
 
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(saveButton);
 
+    buttonsLayout->addWidget(infoButton);
+    buttonsLayout->addWidget(saveButton);
+
+    // Создаем меню для сохранения
     QMenu *saveMenu = new QMenu(saveButton);
     saveMenu->addAction("PNG", [=]() { savePlot(plot, "PNG"); });
     saveMenu->addAction("JPEG", [=]() { savePlot(plot, "JPEG"); });
@@ -364,9 +516,39 @@ void Lab2Panel::plotCsv(const QString &fileName)
         saveMenu->exec(saveButton->mapToGlobal(QPoint(0, saveButton->height())));
     });
 
-    // Добавляем элементы в основной layout
+    // Создаем информационное сообщение
+    QMessageBox *infoMessage = new QMessageBox(mainWindow);
+    infoMessage->setWindowTitle("Управление графиком");
+    infoMessage->setIcon(QMessageBox::Information);
+    infoMessage->setText(
+        "<h3>Управление графиком</h3>"
+        "<p><b>Масштабирование:</b></p>"
+        "<ul>"
+        "<li>Колесико мыши - приближение/отдаление по оси X</li>"
+        "<li>Можно масштабировать только по горизонтали</li>"
+        "</ul>"
+        "<p><b>Перемещение:</b></p>"
+        "<ul>"
+        "<li>Зажмите левую кнопку мыши и перетаскивайте график</li>"
+        "<li>Перемещение возможно только по горизонтали</li>"
+        "</ul>"
+        "<p><b>Сброс масштаба:</b></p>"
+        "<ul>"
+        "<li>Двойной клик по графику</li>"
+        "</ul>"
+        "<p><b>Дополнительно:</b></p>"
+        "<ul>"
+        "<li>Кнопка 'Сохранить' - экспорт графика в PNG, JPEG или PDF</li>"
+        "</ul>"
+        );
+
+    connect(infoButton, &QPushButton::clicked, [=]() {
+        infoMessage->show();
+    });
+
+    // Добавляем layout с кнопками и график в основной layout
     mainLayout->addWidget(plot);
-    mainLayout->addLayout(buttonLayout);
+    mainLayout->addLayout(buttonsLayout);
 
     // Перерисовываем график
     plot->replot();

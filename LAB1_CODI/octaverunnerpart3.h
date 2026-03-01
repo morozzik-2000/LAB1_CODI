@@ -33,4 +33,6 @@ private:
     QString outDir;
 
     OctaveParams_ params;
+    QString findOctaveExecutable();
+    QString findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth = 0);
 };

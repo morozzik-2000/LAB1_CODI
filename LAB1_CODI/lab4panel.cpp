@@ -92,16 +92,28 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
                 "Введите значения вероятности канальной ошибки (p<sub>k</sub>) и количество ошибок на выходе декодера:",
                 "BER на выходе декодера",
                 "Зависимость",
-                this
+                nullptr
                 );
 
             manualPlotDialog->setAttribute(Qt::WA_DeleteOnClose, false); // не удалять при закрытии
+            manualPlotDialog->setWindowFlags(manualPlotDialog->windowFlags() | Qt::Window);
             connect(manualPlotDialog, &QObject::destroyed, [this]() { manualPlotDialog = nullptr; });
         }
 
         manualPlotDialog->show();
         manualPlotDialog->raise();
         manualPlotDialog->activateWindow();
+
+        // Если окно было свернуто, разворачиваем его
+        if (manualPlotDialog->windowState() & Qt::WindowMinimized) {
+            manualPlotDialog->setWindowState(manualPlotDialog->windowState() & ~Qt::WindowMinimized);
+        }
+
+        connect(manualPlotDialog,
+                &ManualPlotDialog::plotReady,
+                this,
+                &Lab4Panel::plotReady,
+                Qt::UniqueConnection);   // важно
     });
 
 
@@ -145,6 +157,7 @@ QVector<double> Lab4Panel::readCsv(const QString &filePath)
     return data;
 }
 
+
 // ======== Построение графика ========
 void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
 {
@@ -153,11 +166,15 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
 
     QWidget *mainWindow = new QWidget;
     QVBoxLayout *mainLayout = new QVBoxLayout(mainWindow);
+    mainLayout->setSpacing(5);
+    mainLayout->setContentsMargins(5, 5, 5, 5);
+
     QCustomPlot *plot = new QCustomPlot;
     mainWindow->setWindowTitle(title);
 
+
     // Заголовок
-    QCPTextElement *titleElement = new QCPTextElement(plot, title, QFont("sans", 12, QFont::Bold));
+    QCPTextElement *titleElement = new QCPTextElement(plot, title, QFont("sans", 10, QFont::Bold));
     plot->plotLayout()->insertRow(0);
     plot->plotLayout()->addElement(0, 0, titleElement);
 
@@ -165,10 +182,16 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
     QVector<double> x(data.size());
     for (int i = 0; i < data.size(); ++i) x[i] = i + 1;
 
+    // Сохраняем исходные диапазоны для сброса масштаба
+    double xMin = 0;
+    double xMax = data.size() + 1;
+    double yMin = *std::min_element(data.begin(), data.end()) - 1;
+    double yMax = *std::max_element(data.begin(), data.end()) + 1;
+
     plot->addGraph();
     plot->graph(0)->setData(x, data);
     plot->graph(0)->setLineStyle(QCPGraph::lsNone);
-    plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+    plot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 4));
     plot->graph(0)->setPen(QPen(Qt::blue));
 
     plot->addGraph();
@@ -178,10 +201,8 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
 
     plot->xAxis->setLabel("Индекс");
     plot->yAxis->setLabel("Значение");
-    plot->xAxis->setRange(0, data.size() + 1);
-    double min = *std::min_element(data.begin(), data.end());
-    double max = *std::max_element(data.begin(), data.end());
-    plot->yAxis->setRange(min - 1, max + 1);
+    plot->xAxis->setRange(xMin, xMax);
+    plot->yAxis->setRange(yMin, yMax);
 
     // Разрешаем масштабирование и перетаскивание по оси OX
     plot->setInteraction(QCP::iRangeZoom, true);
@@ -191,16 +212,68 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
     plot->axisRect()->setRangeZoom(Qt::Horizontal);
     plot->axisRect()->setRangeDrag(Qt::Horizontal);
 
+    // Добавляем обработчик двойного клика для сброса масштаба
+    connect(plot, &QCustomPlot::mouseDoubleClick, [=](QMouseEvent *event) {
+        Q_UNUSED(event);
+        plot->xAxis->setRange(xMin, xMax);
+        plot->yAxis->setRange(yMin, yMax);
+        plot->replot();
+    });
 
-    // Сохранение
+    // Добавляем график в layout с растяжением
+    mainLayout->addWidget(plot, 1);
+
+    // Создаем компактный layout для кнопок внизу
+    QHBoxLayout *bottomButtonsLayout = new QHBoxLayout();
+    bottomButtonsLayout->setContentsMargins(0, 2, 0, 2);
+    bottomButtonsLayout->setSpacing(10);
+
+    // Создаем информационную кнопку с восклицательным знаком
+    QPushButton *infoButton = new QPushButton("ⓘ");
+    infoButton->setFixedSize(28, 28);
+    infoButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #0078D7;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 14px;"
+        "   font-size: 16px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #005A9E;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #004080;"
+        "}"
+        );
+
+    // Создаем кнопку сохранения
     QPushButton *saveButton = new QPushButton("Сохранить");
-    saveButton->setFixedSize(100, 30);
-    saveButton->setStyleSheet(ThemeStyles::lightButtonStyle());
+    saveButton->setFixedSize(100, 28);
+    saveButton->setStyleSheet(
+        "QPushButton {"
+        "   background-color: #28a745;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 4px;"
+        "   font-size: 12px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #218838;"
+        "}"
+        "QPushButton:pressed {"
+        "   background-color: #1e7e34;"
+        "}"
+        );
 
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    buttonLayout->addStretch();
-    buttonLayout->addWidget(saveButton);
+    // Добавляем растяжение слева, чтобы кнопки были справа
+    bottomButtonsLayout->addStretch();
+    bottomButtonsLayout->addWidget(infoButton);
+    bottomButtonsLayout->addWidget(saveButton);
 
+    // Создаем меню для сохранения
     QMenu *saveMenu = new QMenu(saveButton);
     saveMenu->addAction("PNG", [=]() { savePlot(plot, "PNG"); });
     saveMenu->addAction("JPEG", [=]() { savePlot(plot, "JPEG"); });
@@ -210,8 +283,24 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
         saveMenu->exec(saveButton->mapToGlobal(QPoint(0, saveButton->height())));
     });
 
-    mainLayout->addWidget(plot);
-    mainLayout->addLayout(buttonLayout);
+    // Создаем информационное сообщение
+    QMessageBox *infoMessage = new QMessageBox(mainWindow);
+    infoMessage->setWindowTitle("Управление графиком");
+    infoMessage->setIcon(QMessageBox::Information);
+    infoMessage->setText(
+        "<h3>Управление графиком</h3>"
+        "<p><b>Масштабирование:</b> колесико мыши (только по X)</p>"
+        "<p><b>Перемещение:</b> зажать ЛКМ и тащить (только по X)</p>"
+        "<p><b>Сброс масштаба:</b> двойной клик по графику</p>"
+        "<p><b>Сохранение:</b> кнопка 'Сохранить'</p>"
+        );
+
+    connect(infoButton, &QPushButton::clicked, [=]() {
+        infoMessage->show();
+    });
+
+    // Добавляем компактный layout с кнопками
+    mainLayout->addLayout(bottomButtonsLayout);
 
     plot->replot();
     mainWindow->resize(800, 600);

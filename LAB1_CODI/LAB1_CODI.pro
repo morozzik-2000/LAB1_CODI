@@ -26,7 +26,9 @@ SOURCES += \
     themestyles.cpp
 
 HEADERS += \
+    OctaveManager.h \
     OctaveParams.h \
+    PlotDataForCompare.h \
     codecdiagramwidget.h \
     lab1panel.h \
     lab2panel.h \

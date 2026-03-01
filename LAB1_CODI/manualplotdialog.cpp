@@ -4,18 +4,20 @@
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QDialogButtonBox>
+#include <QFile>
+#include <QTextDocument>
+#include <QDateTime>
 #include "qcustomplot.h"
 
-
 ManualPlotDialog::ManualPlotDialog(
-        const QString &instructionText,
-        const QString &yAxisLabel,
-        const QString &plotTitle,
-        QWidget *parent)
-        : QDialog(parent),
-          m_instructionText(instructionText),
-          m_yAxisLabel(yAxisLabel),
-          m_plotTitle(plotTitle)
+    const QString &instructionText,
+    const QString &yAxisLabel,
+    const QString &plotTitle,
+    QWidget *parent)
+    : QDialog(parent),
+    m_instructionText(instructionText),
+    m_yAxisLabel(yAxisLabel),
+    m_plotTitle(plotTitle)
 {
     setupUI();
 }
@@ -26,11 +28,11 @@ void ManualPlotDialog::setupUI()
     setMinimumSize(800, 600);
     setWindowFlags(Qt::Window | Qt::WindowMinimizeButtonHint | Qt::WindowCloseButtonHint);
 
-
     auto *layout = new QVBoxLayout(this);
 
     // Инструкция
     auto *instructionLabel = new QLabel(m_instructionText);
+    instructionLabel->setWordWrap(true);
     layout->addWidget(instructionLabel);
 
     // Таблица для ввода точек
@@ -53,17 +55,20 @@ void ManualPlotDialog::setupUI()
 
     layout->addLayout(tableButtonsLayout);
 
+    // Кнопки сохранения таблицы
+    auto *saveButtonsLayout = new QHBoxLayout();
+
+    auto *saveTxtButton = new QPushButton("💾 Сохранить точки (TXT)");
+
+    saveButtonsLayout->addWidget(saveTxtButton);
+    saveButtonsLayout->addStretch();
+
+    layout->addLayout(saveButtonsLayout);
+
     // Кнопки диалога
-    // auto *buttonBox = new QDialogButtonBox(
-    //     QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-    // auto *plotButton = new QPushButton("Построить график");
-    // buttonBox->addButton(plotButton, QDialogButtonBox::ActionRole);
     auto *buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok);
-
-    auto *plotButton = new QPushButton("Построить график");
+    auto *plotButton = new QPushButton("📊 Построить график");
     buttonBox->addButton(plotButton, QDialogButtonBox::ActionRole);
-
     layout->addWidget(buttonBox);
 
     // Подключаем сигналы
@@ -71,37 +76,8 @@ void ManualPlotDialog::setupUI()
     connect(removeButton, &QPushButton::clicked, this, &ManualPlotDialog::removePoint);
     connect(clearButton, &QPushButton::clicked, this, &ManualPlotDialog::clearPoints);
     connect(plotButton, &QPushButton::clicked, this, &ManualPlotDialog::plotGraph);
+    connect(saveTxtButton, &QPushButton::clicked, this, &ManualPlotDialog::savePointsToTxt);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-
-
-    // // Добавляем начальные точки из ваших данных
-    // QVector<double> initialPk = {0.0010, 0.0015, 0.0020, 0.0025, 0.0030, 0.0035, 0.0040, 0.0045, 0.0050,
-    //                              0.0055, 0.0060, 0.0065, 0.0070, 0.0075, 0.0080, 0.0085, 0.0090, 0.0095,
-    //                              0.0100, 0.0150, 0.0200, 0.0250, 0.0300, 0.0350, 0.0400, 0.0450, 0.0500,
-    //                              0.0550, 0.0600, 0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000};
-
-    // QVector<double> initialErrors = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //                                  0, 0, 8, 12, 54, 106, 147, 270, 534, 1034, 1177, 1666, 2154,
-    //                                  2775, 3425, 4122, 4576, 5045};
-
-    // for (int i = 0; i < initialPk.size(); ++i) {
-    //     m_pkValues.append(initialPk[i]);
-    //     m_errorValues.append(initialErrors[i]);
-    // }
-
-    // updateTable();
-
-    if (m_pkValues.isEmpty()) {
-        QVector<double> initialPk = {};
-        QVector<double> initialErrors = {};
-
-        for (int i = 0; i < initialPk.size(); ++i) {
-            m_pkValues.append(initialPk[i]);
-            m_errorValues.append(initialErrors[i]);
-        }
-        updateTable();
-    }
-
 
     // Получаем реальные параметры из Lab1Panel
     Lab1Panel *p1 = nullptr;
@@ -163,7 +139,6 @@ void ManualPlotDialog::clearPoints()
     }
 }
 
-
 void ManualPlotDialog::updateTable()
 {
     // 🔹 Сначала сохраняем текущие значения из таблицы в m_pkValues/m_errorValues
@@ -180,9 +155,9 @@ void ManualPlotDialog::updateTable()
 
     for (int i = 0; i < m_pkValues.size(); ++i) {
         if (!m_table->item(i, 0)) {
-            m_table->setItem(i, 0, new QTableWidgetItem(QString::number(m_pkValues[i], 'f', 3)));
+            m_table->setItem(i, 0, new QTableWidgetItem(QString::number(m_pkValues[i], 'f', 4)));
         } else {
-            m_table->item(i, 0)->setText(QString::number(m_pkValues[i], 'f', 3));
+            m_table->item(i, 0)->setText(QString::number(m_pkValues[i], 'f', 4));
         }
 
         if (!m_table->item(i, 1)) {
@@ -191,6 +166,68 @@ void ManualPlotDialog::updateTable()
             m_table->item(i, 1)->setText(QString::number(m_errorValues[i]));
         }
     }
+}
+
+void ManualPlotDialog::savePointsToTxt()
+{
+    // Обновляем данные из таблицы перед сохранением
+    for (int i = 0; i < m_table->rowCount(); ++i) {
+        if (i < m_pkValues.size()) {
+            bool pkOk, errorOk;
+            double pk = m_table->item(i, 0)->text().toDouble(&pkOk);
+            double errors = m_table->item(i, 1)->text().toDouble(&errorOk);
+
+            if (pkOk && errorOk) {
+                m_pkValues[i] = pk;
+                m_errorValues[i] = errors;
+            }
+        }
+    }
+
+    // Диалог выбора файла
+    QString fileName = QFileDialog::getSaveFileName(
+        this,
+        "Сохранить точки в текстовый файл",
+        QDir::homePath() + QString("/points_BCH(%1_%2_%3).txt").arg(n).arg(k).arg(t),
+        "Text Files (*.txt);;CSV Files (*.csv);;All Files (*)"
+        );
+
+    if (fileName.isEmpty()) {
+        return; // Пользователь отменил сохранение
+    }
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Ошибка",
+                             "Не удалось создать файл для сохранения.");
+        return;
+    }
+
+    QTextStream out(&file);
+
+    // Заголовок с информацией о коде
+    out << "# Tocki dlya postroenya zavisimosti BER(pk)\n";
+    out << "# BCH(" << n << "," << k << "," << t << ")\n";
+    out << "# Kolichestvo slov: " << numWords << "\n";
+    out << "# Vsego decodirovannyh bit: " << N_dec_new << "\n";
+                                       out << "# Data sohranenya: " << QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") << "\n";
+    out << "#\n";
+    out << "# pk\Kolichestvo oshibok\tBER\n";
+    out << "# " << QString("-").repeated(50) << "\n";
+
+    // Данные
+    for (int i = 0; i < m_pkValues.size(); ++i) {
+        double ber = m_errorValues[i] / N_dec_new;
+        out << QString("%1\t%2\t%3\n")
+                   .arg(m_pkValues[i], 0, 'f', 6)
+                   .arg(m_errorValues[i])
+                   .arg(ber, 0, 'e', 6);
+    }
+
+    file.close();
+
+    QMessageBox::information(this, "Успех",
+                             QString("Точки успешно сохранены в файл:\n%1").arg(fileName));
 }
 
 
@@ -238,6 +275,13 @@ void ManualPlotDialog::plotGraph()
             }
         }
     }
+
+    PlotData data;
+    data.pk = sortedPk;
+    data.ber = sortedBer;
+    data.name = m_yAxisLabel;
+
+    emit plotReady(data);
 
     // Настройка графика
     customPlot->addGraph();
@@ -351,15 +395,15 @@ void ManualPlotDialog::plotGraph()
     auto *buttonBox = new QDialogButtonBox();
     auto *closeButton = new QPushButton("Закрыть");
     buttonBox->addButton(closeButton, QDialogButtonBox::RejectRole);
-    auto *saveButton = new QPushButton("Сохранить");
-    buttonBox->addButton(saveButton, QDialogButtonBox::ActionRole);
+    auto *savePlotButton = new QPushButton("💾 Сохранить график");
+    buttonBox->addButton(savePlotButton, QDialogButtonBox::ActionRole);
     auto *resetZoomButton = new QPushButton("Сбросить масштаб");
     buttonBox->addButton(resetZoomButton, QDialogButtonBox::ActionRole);
     auto *clearHighlightsButton = new QPushButton("Очистить выделения");
     buttonBox->addButton(clearHighlightsButton, QDialogButtonBox::ActionRole);
     layout->addWidget(buttonBox);
 
-    connect(saveButton, &QPushButton::clicked, this, [=]() { savePlot(customPlot); });
+    connect(savePlotButton, &QPushButton::clicked, this, [=]() { savePlot(customPlot); });
     connect(resetZoomButton, &QPushButton::clicked, [=]() {
         customPlot->xAxis->setRange(0, *std::max_element(sortedPk.constBegin(), sortedPk.constEnd()) * 1.1);
         customPlot->yAxis->setRange(0, *std::max_element(sortedBer.constBegin(), sortedBer.constEnd()) * 1.1);
@@ -375,25 +419,23 @@ void ManualPlotDialog::plotGraph()
     plotDialog->exec();
 }
 
-// НОВАЯ ФУНКЦИЯ ДЛЯ СОХРАНЕНИЯ ГРАФИКА
 void ManualPlotDialog::savePlot(QCustomPlot *customPlot)
 {
     // Диалог выбора файла
     QString fileName = QFileDialog::getSaveFileName(
         this,
         "Сохранить график",
-        QDir::homePath() + "/BER_Graph_BCH127_64_10",
+        QDir::homePath() + QString("/BER_Graph_BCH(%1_%2_%3)").arg(n).arg(k).arg(t),
         "PNG Image (*.png);;JPEG Image (*.jpg *.jpeg);;PDF Document (*.pdf);;All Files (*)"
         );
 
     if (fileName.isEmpty()) {
-        return; // Пользователь отменил сохранение
+        return;
     }
 
     bool success = false;
     QString fileExtension = QFileInfo(fileName).suffix().toLower();
 
-    // Сохраняем в зависимости от расширения
     if (fileExtension == "png") {
         success = customPlot->savePng(fileName, customPlot->width(), customPlot->height());
     }
@@ -404,12 +446,10 @@ void ManualPlotDialog::savePlot(QCustomPlot *customPlot)
         success = customPlot->savePdf(fileName, customPlot->width(), customPlot->height());
     }
     else {
-        // По умолчанию сохраняем как PNG
         fileName += ".png";
         success = customPlot->savePng(fileName, customPlot->width(), customPlot->height());
     }
 
-    // Показываем сообщение о результате
     if (success) {
         QMessageBox::information(this, "Успех",
                                  QString("График успешно сохранен в файл:\n%1").arg(fileName));
@@ -418,6 +458,7 @@ void ManualPlotDialog::savePlot(QCustomPlot *customPlot)
                              "Не удалось сохранить график. Проверьте права доступа к файлу.");
     }
 }
+
 void ManualPlotDialog::closeEvent(QCloseEvent *event)
 {
     // Просто скрываем окно, не закрываем полностью

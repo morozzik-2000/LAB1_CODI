@@ -12,6 +12,7 @@
 #include "Lab2Panel.h"
 #include "Lab3Panel.h"
 #include "Lab4Panel.h"
+#include "PlotDataForCompare.h"
 
 class MainWindow : public QWidget {
     Q_OBJECT
@@ -43,6 +44,19 @@ private:
 
     void appendHeader(const QString &msg);
 
+    QPushButton *btnLab5 = nullptr;
+
+    PlotData inputData;
+    PlotData outputData;
+
+    bool hasInput=false;
+    bool hasOutput=false;
+
+
+private slots:
+    void onPlotReady(const PlotData &data);
+    void showComparisonPlot();
+
 private slots:
     void onLab1Clicked();
     void onLab2Clicked();
@@ -52,4 +66,5 @@ private slots:
     void appendLog(const QString &msg);
     void startModeling();
     void saveLogToFile();
+
 };

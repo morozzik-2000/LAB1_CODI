@@ -30,10 +30,13 @@ signals:
     void logMessage(const QString &msg);
     void plotDataReady(const QString &title, const QVector<double> &x, const QVector<double> &y);
 
+
 private:
     void writeOctaveScript(OctaveParams_ &params, const QString &scriptPath, const QString &outDir);
 
     QProcess *proc;
     QString outDir;
     OctaveParams_ params;
+    QString findOctaveExecutable();
+    QString findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth = 0);
 };
