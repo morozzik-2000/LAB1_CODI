@@ -95,3 +95,5 @@ OctaveParams_ Lab1Panel::getParams() const
 
     return p;
 }
+
+

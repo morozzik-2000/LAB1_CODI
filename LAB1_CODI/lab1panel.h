@@ -2,6 +2,7 @@
 #include <QWidget>
 #include "OctaveRunner.h"
 #include "OctaveParams.h"
+#include <QPushButton>
 
 class QSpinBox;
 
@@ -15,7 +16,11 @@ public:
     QSpinBox *spinCorrecting;
     QSpinBox *spinWords;
 
+
 signals:
     void logMessage(const QString &);
+
+private slots:
+
 
 };

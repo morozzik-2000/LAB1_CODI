@@ -22,7 +22,8 @@ void OctaveRunnerPart2::runOctave(OctaveParams_ &params)
     QString scriptPath = QDir::toNativeSeparators(QDir::currentPath() + "/bch_lab_part2.m");
     writeOctaveScript(params, scriptPath, outDir);
 
-    QString octaveProgram = QDir::toNativeSeparators("E:/Octave/Octave-10.2.0/mingw64/bin/octave.exe");
+    // QString octaveProgram = QDir::toNativeSeparators("E:/Octave/Octave-10.2.0/mingw64/bin/octave.exe");
+    QString octaveProgram = QDir::toNativeSeparators("C:/Users/Student/AppData/Local/Programs/GNU Octave/Octave-10.2.0/mingw64/bin/octave.exe");
 
     QStringList args;
     args << "--no-gui" << "--silent" << scriptPath;

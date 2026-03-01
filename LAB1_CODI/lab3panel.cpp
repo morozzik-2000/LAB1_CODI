@@ -46,7 +46,7 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     buttonsHandGroup->setMaximumWidth(300);
     QVBoxLayout *glh = new QVBoxLayout(buttonsHandGroup);
 
-    auto *outEnc = new QPushButton("Кодовая последовательность выходе кодера");
+    auto *outEnc = new QPushButton("Кодовая последовательность на выходе кодера");
     auto *inDec = new QPushButton("Последовательность на входе декодера");
     auto *errVec = new QPushButton("Вектор ошибок");
 

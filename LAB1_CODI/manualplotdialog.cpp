@@ -180,9 +180,9 @@ void ManualPlotDialog::updateTable()
 
     for (int i = 0; i < m_pkValues.size(); ++i) {
         if (!m_table->item(i, 0)) {
-            m_table->setItem(i, 0, new QTableWidgetItem(QString::number(m_pkValues[i], 'f', 4)));
+            m_table->setItem(i, 0, new QTableWidgetItem(QString::number(m_pkValues[i], 'f', 3)));
         } else {
-            m_table->item(i, 0)->setText(QString::number(m_pkValues[i], 'f', 4));
+            m_table->item(i, 0)->setText(QString::number(m_pkValues[i], 'f', 3));
         }
 
         if (!m_table->item(i, 1)) {
