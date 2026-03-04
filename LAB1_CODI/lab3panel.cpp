@@ -104,6 +104,7 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
         }
 
         // Показываем и активируем окно
+        emit requestLab1Params();
         manualPlotDialog->show();
         manualPlotDialog->raise();
         manualPlotDialog->activateWindow();

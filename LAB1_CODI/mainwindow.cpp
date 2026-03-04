@@ -164,7 +164,20 @@ QWidget* MainWindow::createTopArea()
     connect(p3, &Lab3Panel::runRequestedLab3, this, &MainWindow::startModeling);
     connect(p4, &Lab4Panel::runRequestedLab4, this, &MainWindow::startModeling);
 
+    connect(p1, &Lab1Panel::paramsChanged, this, &MainWindow::onParamsChanged); // чтобы закинуть в мануал плот данные
+    connect(p3, &Lab3Panel::requestLab1Params, this, [=]() {
 
+        if (p3->manualPlotDialog) {
+            p3->manualPlotDialog->setParams(currentParams);
+        }
+    });
+
+    connect(p4, &Lab4Panel::requestLab1Params, this, [=]() {
+
+        if (p4->manualPlotDialog)
+            p4->manualPlotDialog->setParams(currentParams);
+
+    });
 
     stack->addWidget(p1);
     stack->addWidget(p2);
@@ -450,4 +463,18 @@ void MainWindow::openComparisonWindow()
 
     comparisonWindow->show();
     comparisonWindow->raise();
+}
+
+void MainWindow::onParamsChanged(const OctaveParams_ &params)
+{
+    currentParams = params;
+
+    // 🔥 Если диалог уже создан — обновляем его
+    if (p3 && p3->manualPlotDialog) {
+        p3->manualPlotDialog->setParams(currentParams);
+    }
+
+    // 🔥 Обновляем Lab4
+    if (p4 && p4->manualPlotDialog)
+        p4->manualPlotDialog->setParams(currentParams);
 }

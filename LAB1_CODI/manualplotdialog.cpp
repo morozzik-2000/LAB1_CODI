@@ -79,24 +79,39 @@ void ManualPlotDialog::setupUI()
     connect(saveTxtButton, &QPushButton::clicked, this, &ManualPlotDialog::savePointsToTxt);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 
-    // Получаем реальные параметры из Lab1Panel
-    Lab1Panel *p1 = nullptr;
-    QWidget *parentWidget = this->parentWidget();
-    while (parentWidget && !p1) {
-        p1 = parentWidget->findChild<Lab1Panel*>();
-        parentWidget = parentWidget->parentWidget();
-    }
+    // // Получаем реальные параметры из Lab1Panel
+    // Lab1Panel *p1 = nullptr;
+    // QWidget *parentWidget = this->parentWidget();
+    // while (parentWidget && !p1) {
+    //     p1 = parentWidget->findChild<Lab1Panel*>();
+    //     parentWidget = parentWidget->parentWidget();
+    // }
 
-    if (p1) {
-        OctaveParams_ params = p1->getParams();
-        n = params.n;
-        k = params.k;
-        t = params.t;
-        numWords = params.numWords;
-    }
+    // if (p1) {
+    //     OctaveParams_ params = p1->getParams();
+    //     n = params.n;
+    //     k = params.k;
+    //     t = params.t;
+    //     numWords = params.numWords;
+    // }
+    // qDebug() << "N = " << n << "K - " << k << "T=" << t;
+    // // Общее количество декодированных бит
+    // N_dec_new = k * numWords;
+}
 
-    // Общее количество декодированных бит
+void ManualPlotDialog::setParams(const OctaveParams_ &params)
+{
+    n = params.n;
+    k = params.k;
+    t = params.t;
+    numWords = params.numWords;
+
     N_dec_new = k * numWords;
+
+    qDebug() << "Обновлены параметры:"
+             << "N =" << n
+             << "K =" << k
+             << "T =" << t;
 }
 
 void ManualPlotDialog::addPoint()

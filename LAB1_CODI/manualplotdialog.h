@@ -27,6 +27,7 @@ public:
         const QString &yAxisLabel,
         const QString &plotTitle,
         QWidget *parent = nullptr);
+    void setParams(const OctaveParams_ &params);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -40,6 +41,7 @@ private slots:
     void plotGraph();
     void savePointsToTxt();
     void savePlot(QCustomPlot *customPlot);
+
 
 
 private:

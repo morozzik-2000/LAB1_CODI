@@ -53,7 +53,7 @@ private:
     bool hasPlot1=false;
     bool hasPlot2=false;
     ComparisonWindow* comparisonWindow=nullptr;
-
+    OctaveParams_ currentParams;
 
 private slots:
 
@@ -68,5 +68,6 @@ private slots:
     void appendLog(const QString &msg);
     void startModeling();
     void saveLogToFile();
+    void onParamsChanged(const OctaveParams_ &params);
 
 };

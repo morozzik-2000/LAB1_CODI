@@ -14,7 +14,7 @@
 #include <QSpinBox>
 #include <QPushButton>
 #include <QPushButton>
-
+#include <QDebug>
 
 Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
 {
@@ -75,6 +75,8 @@ Lab1Panel::Lab1Panel(QWidget *parent) : QWidget(parent)
                         .arg(spinCorrecting->value())
                         .arg(spinWords->value());
         emit logMessage(s);
+        OctaveParams_ params = getParams();   // 🔥 ВОТ ЭТО ГЛАВНОЕ
+        emit paramsChanged(params);
 
     });
 
@@ -92,7 +94,7 @@ OctaveParams_ Lab1Panel::getParams() const
     p.t = spinCorrecting->value();
     p.numWords = spinWords->value();
     p.channelErrorProbability = 0.01; // можно сделать отдельный QDoubleSpinBox, если нужно
-
+    qDebug() << "N = " << p.n << "K - " << p.k << "T=" << p.t;
     return p;
 }
 

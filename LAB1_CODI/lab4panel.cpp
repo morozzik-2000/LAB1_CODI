@@ -99,7 +99,7 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
             manualPlotDialog->setWindowFlags(manualPlotDialog->windowFlags() | Qt::Window);
             connect(manualPlotDialog, &QObject::destroyed, [this]() { manualPlotDialog = nullptr; });
         }
-
+        emit requestLab1Params();
         manualPlotDialog->show();
         manualPlotDialog->raise();
         manualPlotDialog->activateWindow();

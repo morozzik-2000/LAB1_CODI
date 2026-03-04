@@ -19,6 +19,7 @@ public:
 
 signals:
     void logMessage(const QString &);
+    void paramsChanged(const OctaveParams_ &params);
 
 private slots:
 

@@ -26,10 +26,12 @@ class Lab3Panel : public QWidget
 public:
     explicit Lab3Panel(QWidget *parent = nullptr);
     OctaveParams_ getParams() const;
+    ManualPlotDialog *manualPlotDialog = nullptr;
 
 signals:
     void logMessage(const QString &message);
     void runRequestedLab3();
+    void requestLab1Params();
 
 private slots:
     void savePlot(QCustomPlot *plot, const QString &format);
@@ -40,7 +42,7 @@ private:
     QVector<double> readCsv(const QString &filePath);
     void plotCsv(const QString &fileName);
     QDoubleSpinBox *pSpin;
-    ManualPlotDialog *manualPlotDialog = nullptr;
+
 };
 
 #endif // LAB3PANEL_H
