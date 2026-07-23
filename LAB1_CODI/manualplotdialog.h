@@ -32,8 +32,6 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
-
-
 private slots:
     void addPoint();
     void removePoint();
@@ -41,8 +39,6 @@ private slots:
     void plotGraph();
     void savePointsToTxt();
     void savePlot(QCustomPlot *customPlot);
-
-
 
 private:
     void setupUI();
@@ -62,6 +58,9 @@ private:
     int t = 10;
     int numWords = 1000;
     int N_dec_new = k * numWords;
+
+    QCheckBox *m_logScaleCheckBox;
+    QCustomPlot *m_currentPlot;
 };
 
 #endif // MANUALPLOTDIALOG_H

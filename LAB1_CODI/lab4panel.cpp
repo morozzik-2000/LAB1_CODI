@@ -47,7 +47,7 @@ Lab4Panel::Lab4Panel(QWidget *parent) : QWidget(parent)
 
     auto *infoSeq = new QPushButton("Информационная последовательность");
     auto *decOut = new QPushButton("Последовательность на выходе декодера");
-    auto *cmp = new QPushButton("Сравнение информационной и\nдекодированной последовательности");
+    auto *cmp = new QPushButton("Сравнение информационной и\nдекодированной последовательностей");
     auto *ber_dk = new QPushButton("Зависимость BER\nна выходе декодера от\nвероятности ошибки в ДСК");
 
     for (auto *b : {infoSeq, decOut, cmp, ber_dk}) b->setStyleSheet(ThemeStyles::lightButtonStyle());
@@ -195,7 +195,7 @@ void Lab4Panel::plotCsv(const QString &fileName, const QString &title)
     plot->graph(1)->setPen(QPen(Qt::blue));
 
     plot->xAxis->setLabel("Индекс");
-    plot->yAxis->setLabel("Значение");
+    plot->yAxis->setLabel("");
     plot->xAxis->setRange(xMin, xMax);
     plot->yAxis->setRange(yMin, yMax);
 

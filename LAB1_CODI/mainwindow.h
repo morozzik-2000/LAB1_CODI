@@ -20,6 +20,19 @@ class MainWindow : public QWidget {
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
+private slots:
+
+    void openComparisonWindow();
+    void onLab1Clicked();
+    void onLab2Clicked();
+    void onLab3Clicked();
+    void onLab4Clicked();
+    void onStackIndexChanged(int idx);
+    void appendLog(const QString &msg);
+    void startModeling();
+    void saveLogToFile();
+    void onParamsChanged(const OctaveParams_ &params);
+
 private:
     QWidget* createLeftPanel();
     QWidget* createTopArea();
@@ -54,20 +67,5 @@ private:
     bool hasPlot2=false;
     ComparisonWindow* comparisonWindow=nullptr;
     OctaveParams_ currentParams;
-
-private slots:
-
-    void openComparisonWindow();
-
-private slots:
-    void onLab1Clicked();
-    void onLab2Clicked();
-    void onLab3Clicked();
-    void onLab4Clicked();
-    void onStackIndexChanged(int idx);
-    void appendLog(const QString &msg);
-    void startModeling();
-    void saveLogToFile();
-    void onParamsChanged(const OctaveParams_ &params);
 
 };

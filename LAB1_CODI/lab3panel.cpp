@@ -47,10 +47,10 @@ Lab3Panel::Lab3Panel(QWidget *parent) : QWidget(parent)
     QVBoxLayout *glh = new QVBoxLayout(buttonsHandGroup);
 
     auto *outEnc = new QPushButton("Кодовая последовательность на выходе кодера");
-    auto *inDec = new QPushButton("Последовательность на входе декодера");
+    auto *inDec = new QPushButton("Последовательность на выходе канала");
     auto *errVec = new QPushButton("Вектор ошибок");
 
-    auto *ber_dk = new QPushButton("Зависимость BER\nна входе декодера от\nвероятности ошибки в ДСК");
+    auto *ber_dk = new QPushButton("Зависимость BER\nна выходе канала от\nвероятности ошибки в ДСК");
 
     QPushButton *runButton = new QPushButton("🚀 Запустить моделирование");
     runButton->setStyleSheet(ThemeStyles::OctaveButtonStyle());
@@ -230,7 +230,7 @@ void Lab3Panel::plotCsv(const QString &fileName)
 
     // Настраиваем оси
     plot->xAxis->setLabel("Индекс");
-    plot->yAxis->setLabel("Значение");
+    plot->yAxis->setLabel("");
     plot->xAxis->setRange(xMin, xMax);
     plot->yAxis->setRange(yMin, yMax);
 

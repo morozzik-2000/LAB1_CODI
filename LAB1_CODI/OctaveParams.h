@@ -5,5 +5,5 @@ struct OctaveParams_ {
     int k;
     int t;
     int numWords;
-    double channelErrorProbability; // совпадает с OctaveParams::errorProb
+    double channelErrorProbability;
 };

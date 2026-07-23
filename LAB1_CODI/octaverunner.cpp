@@ -18,15 +18,9 @@ void OctaveRunner::run()
 
 QString OctaveRunner::findOctaveExecutable()
 {
-    QStringList possiblePaths;
+    // ========== 1. БЫСТРЫЙ ПОИСК через системные команды ==========
 
-    // Стандартные пути установки на Windows
-    possiblePaths << "C:/Program Files/GNU Octave/Octave-*/mingw64/bin/octave.exe";
-    possiblePaths << "C:/Program Files (x86)/GNU Octave/Octave-*/mingw64/bin/octave.exe";
-    possiblePaths << "C:/Users/*/AppData/Local/Programs/GNU Octave/Octave-*/mingw64/bin/octave.exe";
-    possiblePaths << "E:/Octave/Octave-*/mingw64/bin/octave.exe";
-
-    // Поиск через where в командной строке
+    // Поиск через 'where' в командной строке
     QProcess which;
     which.start("where octave");
     if (which.waitForFinished(3000)) {
@@ -36,7 +30,8 @@ QString OctaveRunner::findOctaveExecutable()
             for (const QString &line : lines) {
                 QString path = line.trimmed();
                 if (QFile::exists(path)) {
-                    qDebug() << "Found Octave via 'where':" << path;
+                    qDebug() << "Found via 'where':" << path;
+                    emit logMessage("Found via 'where':" + path);
                     return QDir::toNativeSeparators(path);
                 }
             }
@@ -47,47 +42,162 @@ QString OctaveRunner::findOctaveExecutable()
     QString pathEnv = qgetenv("PATH");
     QStringList paths = pathEnv.split(";", Qt::SkipEmptyParts);
     for (const QString &path : paths) {
-        QDir dir(path);
-        QString exePath = dir.filePath("octave.exe");
+        QString exePath = QDir(path).filePath("octave.exe");
         if (QFile::exists(exePath)) {
-            qDebug() << "Found Octave in PATH:" << exePath;
+            qDebug() << "Found in PATH:" << exePath;
+            emit logMessage("Found in PATH:" + exePath);
             return QDir::toNativeSeparators(exePath);
         }
     }
 
-    // Рекурсивный поиск по маске
-    for (const QString &pattern : possiblePaths) {
-        // Разбираем путь на части
-        QString pathPattern = QDir::fromNativeSeparators(pattern);
-        QStringList parts = pathPattern.split('/');
+    // ========== 2. ПОЛНЫЙ ПОИСК ПО ВСЕМ ДИСКАМ ==========
 
-        // Начинаем поиск с корневого каталога
-        QString currentPath = parts.first();
-        if (currentPath.isEmpty()) currentPath = "/";
-
-        // Рекурсивно ищем файл
-        QString foundPath = findFileRecursive(currentPath, parts.mid(1));
-        if (!foundPath.isEmpty()) {
-            qDebug() << "Found Octave via pattern search:" << foundPath;
-            return QDir::toNativeSeparators(foundPath);
-        }
-    }
-
-    // Поиск во всех дисках Windows
 #ifdef Q_OS_WIN
     QFileInfoList drives = QDir::drives();
+
+    // Возможные имена папок с Octave
+    QStringList possibleFolderNames;
+    possibleFolderNames << "GNU Octave"
+                        << "Octave"
+                        << "octave"
+                        << "GNU\\ Octave"
+                        << "Octave-*";
+
+    // Возможные подпути до octave.exe
+    QStringList possibleSubPaths;
+    possibleSubPaths << "mingw64/bin/octave.exe"
+                     << "mingw32/bin/octave.exe"
+                     << "bin/octave.exe"
+                     << "usr/bin/octave.exe"
+                     << "octave/bin/octave.exe";
+
     for (const QFileInfo &drive : drives) {
-        QString searchPath = drive.absolutePath() + "GNU Octave";
-        QString foundPath = findFileRecursive(searchPath,
-                                              {"Octave-*", "mingw64", "bin", "octave.exe"});
+        QString drivePath = drive.absolutePath();
+        if (drivePath.endsWith(":")) drivePath += "/";
+
+        qDebug() << "Searching on drive:" << drivePath;
+        emit logMessage("Searching on drive:" + drivePath);
+
+        // Поиск в стандартных местах
+        for (const QString &folderName : possibleFolderNames) {
+            for (const QString &subPath : possibleSubPaths) {
+                // Если в имени папки есть * - ищем все варианты
+                if (folderName.contains('*')) {
+                    QDir searchDir(drivePath);
+                    QStringList foundDirs = searchDir.entryList(QStringList() << folderName,
+                                                                QDir::Dirs | QDir::NoDotAndDotDot);
+                    for (const QString &foundDir : foundDirs) {
+                        QString testPath = drivePath + foundDir + "/" + subPath;
+                        if (QFile::exists(testPath)) {
+                            qDebug() << "Found in:" << testPath;
+                            emit logMessage("Found in:" + testPath);
+                            return QDir::toNativeSeparators(testPath);
+                        }
+                    }
+                } else {
+                    // Обычная папка
+                    QString testPath = drivePath + folderName + "/" + subPath;
+                    if (QFile::exists(testPath)) {
+                        qDebug() << "Found in:" << testPath;
+                        emit logMessage("Found in:" + testPath);
+                        return QDir::toNativeSeparators(testPath);
+                    }
+
+                    // Вариант с Program Files
+                    testPath = drivePath + "Program Files/" + folderName + "/" + subPath;
+                    if (QFile::exists(testPath)) {
+                        qDebug() << "Found in:" << testPath;
+                        emit logMessage("Found in:" + testPath);
+                        return QDir::toNativeSeparators(testPath);
+                    }
+
+                    // Вариант с Program Files (x86)
+                    testPath = drivePath + "Program Files (x86)/" + folderName + "/" + subPath;
+                    if (QFile::exists(testPath)) {
+                        qDebug() << "Found in:" << testPath;
+                        emit logMessage("Found in:" + testPath);
+                        return QDir::toNativeSeparators(testPath);
+                    }
+                }
+            }
+        }
+
+        // ========== 3. ПОЛНОЕ РЕКУРСИВНОЕ СКАНИРОВАНИЕ (если не нашли) ==========
+        // Ограничиваем глубину поиска, чтобы не сканировать весь диск вечно
+
+        qDebug() << "Performing deep search on" << drivePath << "(this may take a moment)...";
+        emit logMessage("Performing deep search on" + drivePath);
+
+        QString foundPath = deepSearchForOctave(drivePath);
         if (!foundPath.isEmpty()) {
-            qDebug() << "Found Octave on drive:" << foundPath;
+            qDebug() << "Found via deep search:" << foundPath;
+            emit logMessage("Found via deep search:" + foundPath);
             return QDir::toNativeSeparators(foundPath);
         }
     }
 #endif
 
-    qDebug() << "Octave executable not found";
+    qDebug() << "Octave executable not found anywhere!";
+    emit logMessage("Octave executable not found anywhere!");
+    return QString();
+}
+
+// Глубокий рекурсивный поиск с ограничением глубины
+QString OctaveRunner::deepSearchForOctave(const QString &startDir, int depth)
+{
+    if (depth > 5) return QString(); // Ограничиваем глубину, чтобы не зависнуть
+
+    QDir dir(startDir);
+    if (!dir.exists()) return QString();
+
+    // Проверяем наличие octave.exe в текущей папке
+    if (QFile::exists(dir.filePath("octave.exe"))) {
+        return dir.filePath("octave.exe");
+    }
+
+    // Проверяем в подпапках bin, mingw64/bin и т.д.
+    QStringList binPaths;
+    binPaths << "bin/octave.exe"
+             << "mingw64/bin/octave.exe"
+             << "mingw32/bin/octave.exe"
+             << "usr/bin/octave.exe"
+             << "octave/bin/octave.exe";
+
+    for (const QString &binPath : binPaths) {
+        QString testPath = dir.filePath(binPath);
+        if (QFile::exists(testPath)) {
+            return testPath;
+        }
+    }
+
+    // Рекурсивно обходим подпапки
+    QStringList subDirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    // Приоритетные папки для поиска
+    QStringList priorityDirs;
+    for (const QString &subDir : subDirs) {
+        QString lowerDir = subDir.toLower();
+        if (lowerDir.contains("octave") || lowerDir.contains("gnu")) {
+            priorityDirs << subDir;
+        }
+    }
+
+    // Сначала ищем в приоритетных папках
+    for (const QString &subDir : priorityDirs) {
+        QString result = deepSearchForOctave(dir.filePath(subDir), depth + 1);
+        if (!result.isEmpty()) return result;
+    }
+
+    // Потом в остальных (но только на небольшой глубине)
+    if (depth < 3) {
+        for (const QString &subDir : subDirs) {
+            if (!priorityDirs.contains(subDir)) {
+                QString result = deepSearchForOctave(dir.filePath(subDir), depth + 1);
+                if (!result.isEmpty()) return result;
+            }
+        }
+    }
+
     return QString();
 }
 
@@ -128,14 +238,87 @@ QString OctaveRunner::findFileRecursive(const QString &startPath, const QStringL
     return QString();
 }
 
+// void OctaveRunner::runOctave(OctaveParams_ &params)
+// {
+//     qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
+//     outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
+//     QDir().mkpath(outDir);
+//     qDebug() << "Results folder:" << outDir;
+
+//     QString scriptPath = QDir::toNativeSeparators(QDir::currentPath() + "/bch_lab_auto.m");
+//     writeOctaveScript(params, scriptPath, outDir);
+
+//     QString octaveProgram = findOctaveExecutable();
+
+//     if (octaveProgram.isEmpty()) {
+//         emit errorOccurred("❌ Octave executable not found. Please install GNU Octave or specify path manually.");
+//         return;
+//     }
+
+//     qDebug() << "Using Octave from:" << octaveProgram;
+
+//     QStringList args;
+//     args << "--no-gui" << "--silent" << scriptPath;
+
+//     proc = new QProcess(this);
+//     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+//             this, [this](int exitCode, QProcess::ExitStatus){
+//                 if(exitCode == 0) emit finished();
+//                 else emit errorOccurred("Octave finished with error");
+//                 proc->deleteLater(); proc = nullptr;
+//             });
+//     connect(proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError){
+//         emit errorOccurred("Octave launch error");
+//         if(proc) { proc->deleteLater(); proc=nullptr; }
+//     });
+//     connect(proc, &QProcess::readyReadStandardOutput, [this](){
+//         QByteArray b = proc->readAllStandardOutput();
+//         if(!b.isEmpty()) emit logMessage(QString::fromUtf8(b));
+//     });
+//     connect(proc, &QProcess::readyReadStandardError, [this](){
+//         QByteArray b = proc->readAllStandardError();
+//         if(!b.isEmpty()) emit logMessage(QString::fromUtf8(b));
+//     });
+
+//     proc->start(octaveProgram, args);
+//     if(!proc->waitForStarted(3000)) {
+//         emit errorOccurred("🆘 Не удалось подключится к Octave");
+//     } else {
+//         emit logMessage("⚙ Octave в процессе выполнения...");
+//     }
+// }
+
 void OctaveRunner::runOctave(OctaveParams_ &params)
 {
     qDebug() << "[runOctave] Created in thread:" << QThread::currentThread();
-    outDir = QDir::toNativeSeparators(QDir::currentPath() + "/results/");
-    QDir().mkpath(outDir);
+
+// ===== ИСПРАВЛЕНО: Используем временную папку вместо текущей директории =====
+#ifdef Q_OS_WIN
+    QString tempPath = QDir::tempPath();  // C:/Users/Имя/AppData/Local/Temp
+    outDir = tempPath + "/bch_lab_results/";
+#else
+    outDir = QDir::home().filePath("bch_lab_results/");
+#endif
+
+    // Создаем папку с проверкой
+    QDir dir;
+    if (!dir.mkpath(outDir)) {
+        emit errorOccurred("❌ Не удалось создать папку: " + outDir);
+        return;
+    }
+
+    // Проверяем, что папка действительно создалась и в нее можно писать
+    if (!QFileInfo(outDir).isWritable()) {
+        emit errorOccurred("❌ Нет прав на запись в папку: " + outDir);
+        return;
+    }
+
+    emit logMessage("📁 Папка для результатов: " + outDir);
     qDebug() << "Results folder:" << outDir;
 
-    QString scriptPath = QDir::toNativeSeparators(QDir::currentPath() + "/bch_lab_auto.m");
+    // ===== ИСПРАВЛЕНО: Создаем скрипт тоже во временной папке =====
+    QString scriptPath = QDir::toNativeSeparators(QDir::tempPath() + "/bch_lab_auto.m");
+
     writeOctaveScript(params, scriptPath, outDir);
 
     QString octaveProgram = findOctaveExecutable();
@@ -153,12 +336,28 @@ void OctaveRunner::runOctave(OctaveParams_ &params)
     proc = new QProcess(this);
     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this](int exitCode, QProcess::ExitStatus){
-                if(exitCode == 0) emit finished();
-                else emit errorOccurred("Octave finished with error");
-                proc->deleteLater(); proc = nullptr;
+                if(exitCode == 0) {
+                    emit finished();
+                    emit logMessage("✅ Octave выполнен успешно!");
+                } else {
+                    emit errorOccurred("❌ Octave завершился с ошибкой");
+                }
+                proc->deleteLater();
+                proc = nullptr;
             });
-    connect(proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError){
-        emit errorOccurred("Octave launch error");
+    connect(proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error){
+        QString errorMsg;
+        switch(error) {
+        case QProcess::FailedToStart:
+            errorMsg = "Не удалось запустить Octave. Проверьте путь.";
+            break;
+        case QProcess::Crashed:
+            errorMsg = "Octave аварийно завершился.";
+            break;
+        default:
+            errorMsg = "Ошибка при запуске Octave.";
+        }
+        emit errorOccurred("❌ " + errorMsg);
         if(proc) { proc->deleteLater(); proc=nullptr; }
     });
     connect(proc, &QProcess::readyReadStandardOutput, [this](){
@@ -172,9 +371,9 @@ void OctaveRunner::runOctave(OctaveParams_ &params)
 
     proc->start(octaveProgram, args);
     if(!proc->waitForStarted(3000)) {
-        emit errorOccurred("🆘 Не удалось подключится к Octave");
+        emit errorOccurred("🆘 Не удалось подключиться к Octave");
     } else {
-        emit logMessage("⚙ Octave в процессе выполнения...");
+        emit logMessage("⚙️ Octave в процессе выполнения...");
     }
 }
 
@@ -267,4 +466,3 @@ run_bch_model(random_sequence, n, k, t, out_dir);
     ts << script;
     f.close();
 }
-

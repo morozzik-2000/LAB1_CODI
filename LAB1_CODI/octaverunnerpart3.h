@@ -4,14 +4,6 @@
 #include <QString>
 #include "OctaveParams.h"
 
-// struct OctaveParamsPart3 {
-//     int n;
-//     int k;
-//     int t;
-//     int numWords;
-//     double channelErrorProbability;
-// };
-
 class OctaveRunnerPart3 : public QObject
 {
     Q_OBJECT
@@ -35,4 +27,5 @@ private:
     OctaveParams_ params;
     QString findOctaveExecutable();
     QString findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth = 0);
+    QString findPathWithWildcards(const QString &pattern);
 };

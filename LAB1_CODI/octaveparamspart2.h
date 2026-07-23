@@ -2,16 +2,8 @@
 #include <QObject>
 #include <QProcess>
 #include <QString>
-#include "Lab3Panel.h" // для OctaveParams
+#include "Lab3Panel.h"
 #include "OctaveParams.h"
-
-// struct OctaveParamsPart2 {
-//     int n;
-//     int k;
-//     int t;
-//     int numWords;
-//     double channelErrorProbability;
-// };
 
 class OctaveRunnerPart2 : public QObject
 {
@@ -38,5 +30,6 @@ private:
     OctaveParams_ params;
     QString findOctaveExecutable();
     QString findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth = 0);
+    QString findPathWithWildcards(const QString &pattern);
 
 };

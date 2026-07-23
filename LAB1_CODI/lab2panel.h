@@ -35,6 +35,7 @@ private slots:
 private:
     QVector<double> readCsv(const QString &filePath);
     void plotCsv(const QString &fileName);
+    QString m_resultsPath;
 };
 
 #endif // LAB2PANEL_H

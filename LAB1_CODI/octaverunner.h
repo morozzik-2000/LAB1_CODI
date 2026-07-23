@@ -5,15 +5,6 @@
 #include <QVector>
 #include "OctaveParams.h"
 
-// struct OctaveParams {
-//     int n;
-//     int k;
-//     int t;
-//     int numWords;
-//     double errorProb;
-//     int part;
-// };
-
 class OctaveRunner : public QObject {
     Q_OBJECT
 public:
@@ -33,10 +24,11 @@ signals:
 
 private:
     void writeOctaveScript(OctaveParams_ &params, const QString &scriptPath, const QString &outDir);
-
+    QString m_resultsPath;
     QProcess *proc;
     QString outDir;
     OctaveParams_ params;
     QString findOctaveExecutable();
     QString findFileRecursive(const QString &startPath, const QStringList &patternParts, int depth = 0);
+    QString deepSearchForOctave(const QString &startDir, int depth = 0);
 };
